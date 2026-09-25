@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preventive Maintenance Form - FM-MIS-008-02</title>
+    <style>
+        :root {
+            --font-main: Arial, Helvetica, sans-serif;
+            --font-signature: 'Dancing Script', cursive, 'Brush Script MT', cursive;
+            --border: 1px solid #000;
+            --border-width: 1px;
+            --note-bg: #f8f8f8;
+            --highlight-defective: #ffe6e6;
+            --highlight-warning: #fff3cd;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 20px;
+            color: #000;
+        }
+        .container {
+            width: 8.5in; /* Letter width */
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1, h2, h3, h4, p {
+            margin: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: var(--border);
+            padding: 4px 6px;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .header-box {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .logo-placeholder {
+            width: 100%;
+            height: 120px;
+            border: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .header-text .school-name {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+        }
+        .header-text .address {
+            text-align: center;
+            font-size: 14px;
+        }
+        .header-text .form-title {
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .info-table {
+            margin-bottom: 10px;
+        }
+        .info-table td {
+            width: 50%;
+        }
+        .info-table td label {
+            font-weight: bold;
+        }
+        .info-table td input,
+        .info-table td select {
+            width: 100%;
+            padding: 4px;
+            box-sizing: sizing-box;
+            border: var(--border);
+            font-size: 14px;
+        }
+        .checklist-table {
+            margin-bottom: 10px;
+        }
+        .checklist-table th {
+            text-align: left;
+            background-color: #e0e0e0;
+        }
+        .section-header {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .task-row td {
+            padding-left: 20px; /* indent for tasks */
+        }
+        .task-row:first-child td {
+            padding-left: 10px; /* first task under section maybe less indent? */
+        }
+        .note-box {
+            background-color: var(--note-bg);
+            border: var(--border);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .note-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .signature-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .signature-cell {
+            border: var(--border);
+            padding: 8px;
+            text-align: center;
+            position: relative;
+            min-height: 80px;
+        }
+        .signature-cell .signature-value {
+            display: block;
+            font-family: var(--font-signature);
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .signature-cell .signature-label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .signature-cell .signature-value.empty {
+            color: #ccc;
+            font-style: italic;
+        }
+        .footer {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .print-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: center;
+        }
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+        @media print {
+            .print-button {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+            .container {
+                width: 100%;
+            }
+        }
+        .warning-alert {
+            background-color: var(--highlight-warning);
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Box -->
+        <div class="header-box">
+            <div class="logo-placeholder">
+                [School Logo]
+            </div>
+            <div class="header-text">
+                <div class="school-name">GREEN VALLEY COLLEGE FOUNDATION, INC.</div>
+                <div class="address">Km.2, General Santos Drive, Koronadal City</div>
+                <div class="form-title">PREVENTIVE MAINTENANCE FORM</div>
+            </div>
+        </div>
+
+        <!-- Info Table -->
+        <table class="info-table">
+            <tr>
+                <td>
+                    <label for="name">Name:</label><br>
+                    <input type="text" id="name" list="user-list" placeholder="Enter name">
+                    <datalist id="user-list">
+                        <!-- User options will be injected by JS -->
+                    </datalist>
+                </td>
+                <td>
+                    <label for="position">Position:</label><br>
+                    <input type="text" id="position" placeholder="Position">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="department">Department:</label><br>
+                    <input type="text" id="department" placeholder="Department">
+                </td>
+                <td>
+                    <label for="date-started">Date Started:</label><br>
+                    <input type="date" id="date-started">
+                </td>
+            </tr>
+        </table>
+
+        <!-- Warning Alert (hidden by default) -->
+        <div id="warning-alert" class="warning-alert" style="display:none;">
+            Please fill in all required fields.
+        </div>
+
+        <!-- Checklist Table -->
+        <table class="checklist-table">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Date Completed (mm/dd/yyyy)</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody id="checklist-body">
+                <!-- Rows will be injected by JS -->
+            </tbody>
+        </table>
+
+        <!-- Note Box -->
+        <div class="note-box">
+            <strong>NOTE:</strong>
+            It is your responsibility to back-up the data, information or other files stored on your computer disk and/or drives. And the MIS shall not be responsible under any circumstance for any loss or corruption of data and/or software or hardware or any other part as well as CD's/DVDs, and other equipment's.
+        </div>
+
+        <!-- Signature Row -->
+        <div class="signature-row">
+            <div class="signature-cell" id="signature-left">
+                <div class="signature-value" id="e-signature">[E-Signature]</div>
+                <div class="signature-label">SIGNATURE</div>
+            </div>
+            <div class="signature-cell" id="signature-middle">
+                <!-- Intentionally left blank -->
+            </div>
+            <div class="signature-cell" id="signature-right">
+                <div class="signature-value" id="signature-date">[Date]</div>
+                <div class="signature-label">DATE</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            FM-MIS-008-02 Dated 11 June 2026
+        </div>
+
+        <!-- Print Button -->
+        <button class="print-button" onclick="window.print();">Print / Save as PDF</button>
+    </div>
+
+    <script>
+        // Sample user data - replace with actual data as needed
+        const users = [
+            { name: "Juan Dela Cruz", position: "IT Technician", department": "Information Technology" },
+            { name: "Maria Santos", position: "Administrative Assistant", department": "Administration" },
+            { name: "Pedro Ramos", position: "Facilities Staff", department": "Maintenance" },
+            { name: "Ana Lopez", position: "Library Assistant", department": "Library" },
+            { name: "Carlos Mendes", position: "Security Guard", department": "Security" }
+        ];
+
+        // DOM elements
+        const nameInput = document.getElementById('name');
+        const positionInput = document.getElementById('position');
+        const departmentInput = document.getElementById('department');
+        const dateStartedInput = document.getElementById('date-started');
+        const warningAlert = document.getElementById('warning-alert');
+        const eSignatureDiv = document.getElementById('e-signature');
+        const signatureDateDiv = document.getElementById('signature-date');
+        const checklistBody = document.getElementById('checklist-body');
+
+        // Track which date completed cells have been manually edited
+        const dateEditedMap = new Map(); // key: rowIndex, value: boolean
+
+        // Checklist data (from user's description)
+        const checklistData = [
+            { section: "Monitor", tasks: [
+                "Check for vertical lines",
+                "Check power cable for cuts or damages",
+                "Check VGA/HDMI for cuts or damages",
+                "Check for vertical lines" // duplicate as per user message
+            ]},
+            { section: "Mouse", tasks: [
+                "Check cable for cuts or damages",
+                "Check if mouse is responsive"
+            ]},
+            { section: "Keyboard", tasks: [
+                "Check for cable cuts or damages",
+                "Clean dust and other foreign object inside the keyboard",
+                "Check if the keys are in-place"
+            ]},
+            { section: "System Unit", tasks: [
+                "Check for power cable for cuts or damages",
+                "Check for power supply cables integrity",
+                "Check for fan irregular noise",
+                "Check if USB ports are working",
+                "Check if ethernet port is working",
+                "Check if CMOS is working",
+                "Check if windows is updated",
+                "Check if updated anti-virus",
+                "Check if password protected",
+                "Check RAM capacity and condition",
+                "Check storage type and condition (SSD/HDD)"
+            ]}
+        ];
+
+        // Initialize the form
+        function initForm() {
+            populateUserList();
+            populateChecklistTable();
+            setupEventListeners();
+            // Initialize signature date when name is entered (if any)
+            updateSignatureDate();
+        }
+
+        // Populate the datalist with user names
+        function populateUserList() {
+            const datalist = document.getElementById('user-list');
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.name;
+                datalist.appendChild(option);
+            });
+        }
+
+        // Populate the checklist table body
+        function populateChecklistTable() {
+            checklistBody.innerHTML = '';
+            let rowIndex = 0;
+            checklistData.forEach(section => {
+                // Section header row
+                const sectionRow = document.createElement('tr');
+                sectionRow.className = 'section-header';
+                const sectionCell = document.createElement('td');
+                sectionCell.colSpan = 4;
+                sectionCell.textContent = section.section;
+                sectionRow.appendChild(sectionCell);
+                checklistBody.appendChild(sectionRow);
+
+                // Task rows
+                section.tasks.forEach(task => {
+                    const taskRow = document.createElement('tr');
+                    taskRow.className = 'task-row';
+                    taskRow.dataset.index = rowIndex; // store index for tracking
+
+                    // Task cell
+                    const taskCell = document.createElement('td');
+                    taskCell.textContent = task;
+                    taskRow.appendChild(taskCell);
+
+                    // Status cell
+                    const statusCell = document.createElement('td');
+                    const statusSelect = document.createElement('select');
+                    statusSelect.innerHTML = `
+                        <option value="">Select</option>
+                        <option value="good">Good</option>
+                        <option value="defective">Defective</option>
+                    `;
+                    statusSelect.dataset.row = rowIndex;
+                    statusCell.appendChild(statusSelect);
+                    taskRow.appendChild(statusCell);
+
+                    // Date Completed cell
+                    const dateCell = document.createElement('td');
+                    const dateInput = document.createElement('input');
+                    dateInput.type = 'date';
+                    dateInput.dataset.row = rowIndex;
+                    dateCell.appendChild(dateInput);
+                    taskRow.appendChild(dateCell);
+
+                    // Remarks cell
+                    const remarksCell = document.createElement('td');
+                    const remarksInput = document.createElement('input');
+                    remarksInput.type = 'text';
+                    remarksInput.placeholder = 'Enter remarks if any';
+                    remarksInput.dataset.row = rowIndex;
+                    remarksCell.appendChild(remarksInput);
+                    taskRow.appendChild(remarksCell);
+
+                    checklistBody.appendChild(taskRow);
+                    rowIndex++;
+                });
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Name input: auto-fill position/department, update e-signature and signature date
+            nameInput.addEventListener('input', handleNameChange);
+
+            // Position and Department inputs: allow editing even if auto-filled
+            positionInput.addEventListener('input', () => { /* no special handling */ });
+            departmentInput.addEventListener('input', () => { /* no special handling */ });
+
+            // Date Started: auto-fill date completed for unedited rows
+            dateStartedInput.addEventListener('change', handleDateStartedChange);
+
+            // Status dropdowns: check for defective and remarks
+            checklistBody.addEventListener('change', function(e) {
+                if (e.target.tagName === 'SELECT' && e.target.name === 'status') {
+                    const rowIndex = e.target.dataset.row;
+                    handleStatusChange(rowIndex);
+                }
+            });
+
+            // Remarks inputs: remove highlight if defective and remarks filled
+            checklistBody.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+                    const rowIndex = e.target.dataset.row;
+                    handleRemarksInput(rowIndex);
+                }
+            });
+
+            // Date Completed inputs: track manual edits
+            checklistBody.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'date') {
+                    const rowIndex = e.target.dataset.row;
+                    dateEditedMap.set(rowIndex, true);
+                }
+            });
+
+            // Form submission (print button click) - validation
+            window.print = (function(originalPrint) {
+                return function() {
+                    if (validateForm()) {
+                        originalPrint.call(window);
+                    }
+                };
+            })(window.print);
+        }
+
+        // Handle name input
+        function handleNameChange() {
+            const name = nameInput.value.trim();
+            // Auto-fill position and department if exact case-insensitive match
+            const match = users.find(user => user.name.toLowerCase() === name.toLowerCase());
+            if (match) {
+                positionInput.value = match.position;
+                departmentInput.value = department.match.department;
+            } else {
+                // If no match, clear the fields? Actually leave them as they are (user may have edited).
+                // We'll not auto-change them; they remain as user left them.
+                // But if they were previously auto-filled and user changed name to non-match,
+                // we should not keep the old auto-filled values? The spec says:
+                // "If there is no match, leave them empty and editable so the user can type them manually.
+                // Auto-filled values may still be edited."
+                // So if no match, we should clear them? The spec says leave them empty.
+                // We'll clear them to allow user to type manually.
+                positionInput.value = '';
+                departmentInput.value = '';
+            }
+            // Update e-signature
+            updateESignature(name);
+            // Update signature date
+            updateSignatureDate();
+        }
+
+        // Update e-signature display
+        function updateESignature(name) {
+            if (name) {
+                eSignatureDiv.textContent = name;
+                eSignatureDiv.classList.remove('empty');
+            } else {
+                eSignatureDiv.textContent = '';
+                eSignatureDiv.classList.add('empty');
+            }
+        }
+
+        // Update signature date (today's date when name entered)
+        function updateSignatureDate() {
+            const name = nameInput.value.trim();
+            if (name) {
+                const today = new Date();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                signatureDateDiv.textContent = `${mm}/${dd}/${yyyy}`;
+            } else {
+                signatureDateDiv.textContent = '';
+            }
+        }
+
+        // Handle date started change
+        function handleDateStartedChange() {
+            const startedDate = dateStartedInput.value;
+            if (!startedDate) {
+                // If date started cleared, clear all date completed? Spec doesn't say.
+                // We'll leave them as is (but they should be empty if never filled).
+                // We'll clear only those not manually edited? We'll clear all for simplicity.
+                // But better to follow spec: if user changes date started later, update only
+                // the Date Completed cells that have NOT been manually edited.
+                // So we need to update only unedited rows.
+                // We'll do that below.
+            }
+            const dateInputs = checklistBody.querySelectorAll('input[type="date"]');
+            dateInputs.forEach((input, index) => {
+                if (!dateEditedMap.has(index)) {
+                    input.value = startedDate;
+                }
+            });
+        }
+
+        // Handle status change
+        function handleStatusChange(rowIndex) {
+            const row = checklistBody.children[rowIndex]; // need to get correct row accounting for section headers
+            // Actually we stored dataset.row on the select, which is the task index overall (including section headers? we set it per task row)
+            // We'll need to map correctly. We'll instead store the actual row index in the tbody.
+            // We'll adjust: when populating, we set dataset.row to the index of the task row in tbody (0-based).
+            // We'll need to compute the actual row index in tbody: we can store it directly.
+            // We'll change: when creating taskRow, set dataset.taskIndex = taskIndex (0-based across all tasks).
+            // We'll need to redo populateChecklistTable to set proper index.
+            // For simplicity, we'll assume the rowIndex we stored corresponds to the child index in tbody (including section headers? we set it before appending, but we appended section rows first).
+            // Let's change the approach: we'll store the task index in a separate attribute and compute the actual row later.
+            // Given time, we'll assume the rowIndex we stored is the index of the task row in the tbody (0-based) because we appended section rows and then task rows sequentially.
+            // Actually we appended section row then task rows for that section. So the task rows are not contiguous in tbody because section rows are in between.
+            // We need to compute the correct row index.
+            // We'll instead, when populating, keep a global task counter and set data-task-index on the select.
+            // Then we can find the row by scanning tbody for task rows and matching the task index.
+            // Let's implement that.
+
+            // For now, we'll do a simple approach: we'll re-render the table on every change? Too heavy.
+            // Due to time constraints, we'll skip the complex mapping and assume the rowIndex we stored is the index of the row in tbody (0-based) and that section headers are not counted.
+            // We'll need to adjust populateChecklistTable to not include section rows in the tbody? But we need section rows for display.
+            // We'll instead make the section rows have class 'section-header' and task rows have class 'task-row', and we can query only task rows.
+            // We'll store the task index (0-based among tasks) on the select, and then find the corresponding task row.
+
+            // Let's implement a helper to get the task row element by task index.
+            const taskRow = getTaskRowByIndex(rowIndex);
+            if (!taskRow) return;
+
+            const statusSelect = taskRow.querySelector('select');
+            const status = statusSelect.value;
+            const remarksInput = taskRow.querySelector('input[type="text"]');
+            const dateInput = taskRow.querySelector('input[type="date"]');
+
+            // Highlight row if defective and remarks empty
+            if (status === 'defective' && !remarksInput.value.trim()) {
+                taskRow.style.backgroundColor = var(--highlight-defective);
+            } else {
+                taskRow.style.backgroundColor = '';
+            }
+        }
+
+        // Handle remarks input
+        function handleRemarksInput(rowIndex) {
+            const taskRow = getTaskRowByIndex(rowIndex);
+            if (!taskRow) return;
+            const statusSelect = taskRow.querySelector('select');
+            const status = statusSelect.value;
+            const remarksInput = taskRow.querySelector('input[type="text"]');
+            if (status === 'defective' && remarksInput.value.trim()) {
+                taskRow.style.backgroundColor = '';
+            }
+        }
+
+        // Helper to get task row element by task index (0-based among all tasks)
+        function getTaskRowByIndex(taskIndex) {
+            const taskRows = checklistBody.querySelectorAll('.task-row');
+            return taskRows[taskIndex];
+        }
+
+        // Validate form before printing
+        function validateForm() {
+            // Reset warnings
+            warningAlert.style.display = 'none';
+            let valid = true;
+            let messages = [];
+
+            // Name not empty
+            if (!nameInput.value.trim()) {
+                valid = false;
+                messages.push("Name is required.");
+            }
+
+            // All statuses must be selected (not blank)
+            const statusSelects = checklistBody.querySelectorAll('select');
+            statusSelects.forEach((select, index) => {
+                if (!select.value) {
+                    valid = false;
+                    // We'll collect a general message
+                }
+            });
+
+            // If any status is defective, remarks must be filled
+            statusSelects.forEach((select, index) => {
+                if (select.value === 'defective') {
+                    const taskRow = getTaskRowByIndex(index);
+                    if (taskRow) {
+                        const remarksInput = taskRow.querySelector('input[type="text"]');
+                        if (!remarksInput.value.trim()) {
+                            valid = false;
+                            // We'll highlight the row
+                            taskRow.style.backgroundColor = var(--highlight-defective);
+                        }
+                    }
+                }
+            });
+
+            if (!valid) {
+                warningAlert.textContent = messages.join(' ');
+                warningAlert.style.display = 'block';
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initForm);
+    </script>
+</body>
+</html>

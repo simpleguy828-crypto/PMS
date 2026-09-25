@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@plugin "flowbite/plugin";
+
+/* stylelint-disable at-rule-no-unknown */
+@theme {
+  --color-brand: #16a34a;
+  --color-brand-strong: #15803d;
+  --color-brand-medium: #86efac;
+
+  --color-heading: #111827;
+  --color-body: #4b5563;
+  --color-default: #e5e7eb;
+
+  --color-neutral-primary: #ffffff;
+  --color-neutral-primary-soft: #f9fafb;
+  --color-neutral-secondary: #e5e7eb;
+  --color-neutral-secondary-soft: #f3f4f6;
+  --color-neutral-secondary-medium: #d1d5db;
+  --color-neutral-tertiary: #9ca3af;
+  --color-neutral-tertiary-medium: #6b7280;
+
+  --radius-base: 0.5rem;
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+/* stylelint-enable at-rule-no-unknown */
