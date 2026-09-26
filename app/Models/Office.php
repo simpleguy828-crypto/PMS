@@ -13,4 +13,9 @@ class Office extends Model
     {
         return $this->hasMany(PmRecord::class, 'office_id');
     }
+
+    public function scheduleOffices()
+    {
+        return $this->hasMany(PmScheduleOffice::class);
+    }
 }

@@ -14,7 +14,6 @@
         .org-name { font-weight: bold; font-size: 13px; text-align: center; }
         .org-address { font-size: 10px; text-align: center; }
         .form-title { font-weight: bold; font-size: 20px; text-align: center; padding-top: 8px; margin-bottom: 25px; }
-
         .info-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
         .info-table td { border: 1px solid #000; padding: 10px 8px; font-size: 11px; }
         .info-label { font-weight: bold; width: 12%; }

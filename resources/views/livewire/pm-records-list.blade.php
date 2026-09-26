@@ -56,7 +56,8 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                     <tr>
-                        <th class="px-4 py-2">ID</th>
+                        {{-- <th class="px-4 py-2">ID</th> --}}
+                        <th class="px-4 py-2">Name</th>
                         <th class="px-4 py-2">Office</th>
                         <th class="px-4 py-2">Position</th>
                         <th class="px-4 py-2">Date Started</th>
@@ -71,7 +72,7 @@
                     @else
                         @foreach($records as $record)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-2">{{ $record->id }}</td>
+                                {{-- <td class="px-4 py-2">{{ $record->id }}</td> --}}
                                 <td class="px-4 py-2">{{ $record->requested_by_name }}</td>
                                 <td class="px-4 py-2">{{ $record->office->name }}</td>
                                 <td class="px-4 py-2">{{ $record->position }}</td>
@@ -101,14 +102,11 @@
                     Showing {{ $records->firstItem() }} to {{ $records->lastItem() }} of {{ $records->total() }} records
                 </span>
                 <div>
-                    <span class="relative inline-block mr-2">
-                        <select wire:model="perPage"
-                                class="block appearance-none w-20 pl-1 pr-3 py-1 border border-gray-300 rounded-md shadow-sm text-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="15">15</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
+                    <span class="relative inline-block mr-2 w-24">
+                        <x-flowbite-dropdown id="records-per-page"
+                                             wire-model="perPage"
+                                             :selected-value="$perPage"
+                                             :options="[['label' => '15', 'value' => 15], ['label' => '25', 'value' => 25], ['label' => '50', 'value' => 50], ['label' => '100', 'value' => 100]]" />
                     </span>
                     <span class="text-sm text-gray-600">per page</span>
                 </div>

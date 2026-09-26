@@ -109,12 +109,10 @@
 
                 <div>
                     <label for="office-status" class="block mb-2 text-sm font-medium text-heading">Status</label>
-                    <select id="office-status"
-                            wire:model="status"
-                            class="block w-full p-3 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                    <x-flowbite-dropdown id="office-status"
+                                         wire-model="status"
+                                         :selected-value="$status"
+                                         :options="[['label' => 'Active', 'value' => 'active'], ['label' => 'Inactive', 'value' => 'inactive']]" />
                     @error('status') <span class="mt-1 text-sm text-red-500 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>
             </div>

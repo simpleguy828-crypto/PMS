@@ -29,6 +29,8 @@ class PreventiveMaintenanceForm extends Component
     // Submission state tracking
     public $isSubmitted = false;
     public $savedPmRecordId = null;
+    public $isDraft = false;
+    public $confirmationAction = null;
 
     // Edit mode: true when opened via the "Edit" button on an existing record
     public $isEditMode = false;
@@ -79,6 +81,7 @@ class PreventiveMaintenanceForm extends Component
 
         $this->isEditMode = true;
         $this->editingRecordId = $pmRecord->id;
+        $this->isDraft = $pmRecord->status === 'draft';
 
         $this->office_id = $pmRecord->office_id;
         $this->name = $pmRecord->requested_by_name;
@@ -260,7 +263,12 @@ class PreventiveMaintenanceForm extends Component
         $this->validate();
 
         if ($this->isEditMode) {
-            $this->updateExistingRecord();
+            $this->updateExistingRecord($this->isDraft ? 'pending' : null);
+            if ($this->isDraft) {
+                $this->isDraft = false;
+                $this->isSubmitted = true;
+                $this->savedPmRecordId = $this->editingRecordId;
+            }
             return;
         }
 
@@ -273,6 +281,7 @@ class PreventiveMaintenanceForm extends Component
             'requested_by_name' => $this->name,
             'position' => $this->position,
             'date_started' => $this->date_started,
+            'status' => 'pending',
         ]);
 
         // Save PM record items
@@ -290,25 +299,71 @@ class PreventiveMaintenanceForm extends Component
         // Set submission state
         $this->isSubmitted = true;
         $this->savedPmRecordId = $pmRecord->id;
+        $this->isDraft = false;
 
         // Show success message
         session()->flash('message', 'Preventive maintenance record has been saved.');
+    }
+
+    public function saveAsDraft()
+    {
+        $data = $this->validate($this->basicRules());
+
+        if ($this->isEditMode) {
+            $this->updateExistingRecord('draft');
+            session()->flash('message', 'Preventive maintenance draft has been updated.');
+            return;
+        }
+
+        // Save PM record as draft
+        // Note: department is NOT stored here — pm_records has no `department`
+        // column. Department is derived from the office relationship instead
+        // (see $record->office->name in PmRecordsList and the PDF template).
+        $pmRecord = PmRecord::create([
+            'office_id' => $data['office_id'],
+            'requested_by_name' => $data['name'],
+            'position' => $data['position'],
+            'date_started' => $data['date_started'],
+            'status' => 'draft',
+        ]);
+
+        // Save PM record items - save what we have, even if incomplete
+        foreach ($this->checklistItems as $item) {
+            $itemId = $item['id'];
+            PmRecordItem::create([
+                'pm_record_id' => $pmRecord->id,
+                'pm_checklist_item_id' => $itemId,
+                'status' => $this->itemStatus[$itemId] ?: 'pending',
+                'date_completed' => $this->itemDateCompleted[$itemId] ?: null,
+                'remarks' => $this->itemRemarks[$itemId] ?: null,
+            ]);
+        }
+
+        $this->isEditMode = true;
+        $this->editingRecordId = $pmRecord->id;
+        $this->savedPmRecordId = $pmRecord->id;
+        $this->isDraft = true;
+        session()->flash('message', 'Preventive maintenance record has been saved as draft.');
     }
 
     /**
      * Update the existing PmRecord and its checklist items instead of
      * creating a new record. Used only when opened via the Edit button.
      */
-    protected function updateExistingRecord()
+    protected function updateExistingRecord($status = null)
     {
         $pmRecord = PmRecord::with('recordItems')->findOrFail($this->editingRecordId);
 
-        $pmRecord->update([
+        $updates = [
             'office_id' => $this->office_id,
             'requested_by_name' => $this->name,
             'position' => $this->position,
             'date_started' => $this->date_started,
-        ]);
+        ];
+        if ($status !== null) {
+            $updates['status'] = $status;
+        }
+        $pmRecord->update($updates);
 
         $existingItems = $pmRecord->recordItems->keyBy('pm_checklist_item_id');
 
@@ -317,7 +372,7 @@ class PreventiveMaintenanceForm extends Component
             $existing = $existingItems->get($itemId);
 
             $data = [
-                'status' => $this->itemStatus[$itemId],
+                'status' => $this->itemStatus[$itemId] ?: ($status === 'draft' ? 'pending' : null),
                 'date_completed' => $this->itemDateCompleted[$itemId] ?: null,
                 'remarks' => $this->itemRemarks[$itemId],
             ];
@@ -333,7 +388,36 @@ class PreventiveMaintenanceForm extends Component
             }
         }
 
-        session()->flash('message', 'Record #' . $pmRecord->id . ' has been updated.');
+        if ($status !== 'draft') {
+            session()->flash('message', 'Record #' . $pmRecord->id . ' has been updated.');
+        }
+    }
+
+    public function requestConductAgainConfirmation()
+    {
+        $this->confirmationAction = 'conduct-again';
+    }
+
+    public function requestOfficeSelectionConfirmation()
+    {
+        $this->confirmationAction = 'office-selection';
+    }
+
+    public function cancelConfirmation()
+    {
+        $this->confirmationAction = null;
+    }
+
+    public function confirmAction()
+    {
+        $action = $this->confirmationAction;
+        $this->confirmationAction = null;
+
+        if ($action === 'conduct-again') {
+            $this->conductAgain();
+        } elseif ($action === 'office-selection') {
+            return $this->backToOfficeSelection();
+        }
     }
 
     public function conductAgain()
@@ -401,12 +485,7 @@ class PreventiveMaintenanceForm extends Component
 
     protected function rules()
     {
-        $rules = [
-            'office_id' => 'required|exists:offices,id',
-            'name' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'date_started' => 'required|date',
-        ];
+        $rules = $this->basicRules();
 
         // Dynamically add rules for checklist items
         foreach ($this->checklistItems as $item) {
@@ -419,32 +498,19 @@ class PreventiveMaintenanceForm extends Component
         return $rules;
     }
 
-    public function computeFormReady()
+    protected function basicRules()
     {
-        // Check basic fields
-        if (empty($this->office_id) || empty($this->name) || empty($this->position) || empty($this->date_started)) {
-            return false;
-        }
-
-        // Check that all checklist items have a status set (good, defective, na, or needs_attention)
-        foreach ($this->checklistItems as $item) {
-            $itemId = $item['id'];
-            if (!isset($this->itemStatus[$itemId]) ||
-                !in_array($this->itemStatus[$itemId], ['good', 'defective', 'na', 'needs_attention'])) {
-                return false;
-            }
-        }
-
-        return true;
+        return [
+            'office_id' => 'required|exists:offices,id',
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'date_started' => 'required|date',
+        ];
     }
 
     public function render()
     {
         $offices = Office::all();
-        $formReady = $this->computeFormReady();
-        return view('livewire.preventive-maintenance-form', compact('offices'))
-            ->with([
-                'formReady' => $formReady,
-            ]);
+        return view('livewire.preventive-maintenance-form', compact('offices'));
     }
 }

@@ -33,36 +33,30 @@
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold mb-6">Monthly Summary Report</h2>
 
+        @php
+            $monthOptions = collect($months)->map(fn ($monthNumber) => [
+                'label' => date('F', mktime(0, 0, 0, $monthNumber, 1)),
+                'value' => $monthNumber,
+            ])->all();
+            $yearOptions = collect($years)->map(fn ($yearNumber) => [
+                'label' => $yearNumber,
+                'value' => $yearNumber,
+            ])->all();
+        @endphp
         <div class="mb-6">
             <form wire:submit.prevent="generateReport" class="flex flex-wrap items-end gap-4">
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="month">
                         Month
                     </label>
-                    <select wire:model="month"
-                            id="month"
-                            class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500">
-                        @foreach($months as $m)
-                            <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
-                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-flowbite-dropdown id="report-month" wire-model="month" :selected-value="$month" :options="$monthOptions" />
                 </div>
 
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="year">
                         Year
                     </label>
-                    <select wire:model="year"
-                            id="year"
-                            class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-offset-2 focus-ring-indigo-500">
-                        @foreach($years as $y)
-                            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
-                                {{ $y }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-flowbite-dropdown id="report-year" wire-model="year" :selected-value="$year" :options="$yearOptions" />
                 </div>
 
                 <button type="submit"

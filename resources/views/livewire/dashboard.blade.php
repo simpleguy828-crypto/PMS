@@ -55,28 +55,30 @@
                     <span class="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 sm:inline-block">Live</span>
                 </div>
 
+                @php
+                    $dashboardOfficeOptions = array_merge(
+                        [['label' => 'All active offices', 'value' => '']],
+                        $allActiveOffices->map(fn ($office) => ['label' => $office->name, 'value' => $office->id])->all()
+                    );
+                @endphp
                 <div class="grid gap-4 lg:grid-cols-3">
                     <div class="lg:col-span-1">
                         <label for="dashboard-office" class="mb-2 block text-sm font-medium text-gray-700">Office</label>
-                        <select id="dashboard-office" wire:model.live="selectedOfficeId"
-                                class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm">
-                            <option value="">All active offices</option>
-                            @foreach($allActiveOffices as $office)
-                                <option value="{{ $office->id }}">{{ $office->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-flowbite-dropdown id="dashboard-office"
+                                             wire-model="selectedOfficeId"
+                                             :selected-value="$selectedOfficeId"
+                                             :options="$dashboardOfficeOptions"
+                                             placeholder="All active offices" />
                     </div>
 
                     <div>
                         <label for="dashboard-start-date" class="mb-2 block text-sm font-medium text-gray-700">From</label>
-                        <input id="dashboard-start-date" type="date" wire:model.live="customStartDate"
-                               class="block w-full rounded-md border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm">
+                        <x-flowbite-datepicker id="dashboard-start-date" :value="$customStartDate" wire:model.live="customStartDate" />
                     </div>
 
                     <div>
                         <label for="dashboard-end-date" class="mb-2 block text-sm font-medium text-gray-700">To</label>
-                        <input id="dashboard-end-date" type="date" wire:model.live="customEndDate"
-                               class="block w-full rounded-md border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm">
+                        <x-flowbite-datepicker id="dashboard-end-date" :value="$customEndDate" wire:model.live="customEndDate" />
                     </div>
                 </div>
             </div>

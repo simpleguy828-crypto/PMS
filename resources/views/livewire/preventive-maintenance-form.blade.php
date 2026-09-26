@@ -1,161 +1,193 @@
-<div class="max-w-7xl mx-auto p-4">
+<div class="max-w-5xl mx-auto p-3 sm:p-4 md:p-6">
 
     @if($isEditMode)
-        <div class="mb-4 p-3 bg-amber-50 border border-amber-400 text-amber-800 rounded">
+        <div class="mb-4 p-3 bg-amber-50 border border-amber-400 text-amber-800 rounded-lg text-sm">
             Editing Record #{{ $editingRecordId }}
         </div>
     @endif
 
     <!-- Header Box -->
-    <div class="border border-gray-600 mb-4 flex">
-        <div class="w-1/2 p-4 flex items-center justify-center">
-            <img src="{{ asset('images/gvcf-logo.jpg') }}" alt="Green Valley College Foundation Logo" class="h-32 w-32 object-contain">
-        </div>
-        <div class="w-1/2 p-4 flex flex-col justify-center">
-            <div class="text-center text-sm font-bold w-full">
-                GREEN VALLEY COLLEGE FOUNDATION, INC.
-            </div>
-            <div class="text-center text-xs w-full">
-                Km.2, General Santos Drive, Koronadal City
-            </div>
-            <div class="text-center text-2xl font-bold w-full mt-2">
-                PREVENTIVE MAINTENANCE FORM
+    <div class="border border-gray-300 rounded-lg mb-6 overflow-hidden bg-white">
+        <div class="flex flex-col sm:flex-row items-center gap-3 p-4">
+            <img src="{{ asset('images/gvcf-logo.jpg') }}"
+                 alt="Green Valley College Foundation Logo"
+                 class="h-20 w-20 sm:h-24 sm:w-24 object-contain shrink-0">
+            <div class="flex-1 text-center sm:text-left">
+                <div class="text-sm font-bold text-gray-900">
+                    GREEN VALLEY COLLEGE FOUNDATION, INC.
+                </div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                    Km.2, General Santos Drive, Koronadal City
+                </div>
+                <div class="text-lg sm:text-2xl font-bold text-gray-900 mt-2">
+                    Preventive Maintenance Form
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Info Section: Name, Position, Date Started, Department -->
-    <div class="grid gap-6 mb-6 md:grid-cols-2">
-        <!-- Name -->
+    <!-- Info Section: Name, Position, Department, Date Started -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Name:</label>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
             <input type="text"
                    id="name"
                    wire:model="name"
-                   class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm"
+                   class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-base sm:text-sm"
                    placeholder="Enter name"
                    required>
+                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <!-- Position -->
         <div>
-            <label for="position" class="block text-sm font-medium text-gray-700 mb-2">Position:</label>
+            <label for="position" class="block text-sm font-medium text-gray-700 mb-1.5">Position</label>
             <input type="text"
                    id="position"
                    wire:model="position"
-                   class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm"
+                   class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-base sm:text-sm"
                    placeholder="Position"
                    required>
+                 @error('position') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
-        <!-- Department (Auto-filled from Office Selection) -->
+
         <div>
-            <label for="department" class="block text-sm font-medium text-gray-700 mb-2">Department:</label>
-            <div class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm" readonly>
-                    {{ $selectedDepartmentInfo }}
+            <label for="department" class="block text-sm font-medium text-gray-700 mb-1.5">Department</label>
+            <div id="department"
+                 class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 bg-gray-50 text-base sm:text-sm">
+                {{ $selectedDepartmentInfo }}
             </div>
         </div>
-        <!-- Date Started -->
-        <div>
-            <label for="date_started" class="block text-sm font-medium text-gray-700 mb-2">Date Started:</label>
-            <input type="date"
-                   id="date_started"
-                   wire:model="date_started"
-                   class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm"
-                   placeholder="Date Started"
-                   required>
-        </div>
 
+        <div>
+            <label for="date_started" class="block text-sm font-medium text-gray-700 mb-1.5">Date Started</label>
+                 <x-flowbite-datepicker id="date_started" :value="$date_started" wire:model="date_started" required />
+                 @error('date_started') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
     </div>
 
-    <!-- Checklist: Flat Table -->
-    <div class="space-y-6">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wiser">
-                        Task
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wiser">
-                        Status
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wiser">
-                        Date Completed
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wiser">
-                        Remarks
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $grouped = [];
-                    foreach ($checklistItems as $item) {
-                        $grouped[$item['section']][] = $item;
-                    }
-                @endphp
+    <!-- Checklist -->
+    <div class="mb-6">
+        @php
+            $grouped = [];
+            foreach ($checklistItems as $item) {
+                $grouped[$item['section']][] = $item;
+            }
+            $statusOptions = [
+                ['label' => 'Good', 'value' => 'good'],
+                ['label' => 'Defective', 'value' => 'defective'],
+                ['label' => 'N/A', 'value' => 'na'],
+                ['label' => 'Needs Attention', 'value' => 'needs_attention'],
+            ];
+        @endphp
 
-                @foreach($grouped as $section => $items)
-                    <tr class="bg-gray-50">
-                        <td colspan="4" class="px-4 py-2 text-left font-medium text-gray-900">
-                            {{ $section }}
-                        </td>
-                    </tr>
+        @foreach($grouped as $section => $items)
+            <div class="mb-5">
+                <div class="bg-gray-100 border border-gray-300 rounded-t-lg px-4 py-2 font-semibold text-gray-900 text-sm">
+                    {{ $section }}
+                </div>
+
+                <!-- Mobile: stacked cards -->
+                <div class="md:hidden border border-t-0 border-gray-300 rounded-b-lg divide-y divide-gray-200 bg-white">
                     @foreach($items as $item)
-                        @php
-                            $itemId = $item['id'];
-                            $status = $this->itemStatus[$itemId] ?? null;
-                            $remarks = $itemRemarks[$itemId] ?? '';
-                            $dateCompleted = $this->itemDateCompleted[$itemId] ?? '';
-                        @endphp
-                        <tr class="bg-white hover:bg-gray-50">
-                            <td class="px-4 py-2 text-left text-sm font-medium text-gray-900">
+                        @php $itemId = $item['id']; @endphp
+                        <div class="p-4 space-y-3">
+                            <div class="text-sm font-medium text-gray-900">
                                 {{ $item['task_name'] }}
                                 @if($item['finding_label'])
-                                    <br>
-                                    <span class="block text-xs text-gray-500">{{ $item['finding_label'] }}</span>
+                                    <span class="block text-xs font-normal text-gray-500 mt-0.5">{{ $item['finding_label'] }}</span>
                                 @endif
-                            </td>
-                            <td class="px-4 py-2 text-left">
-                                <select wire:model.live="itemStatus.{{ $itemId }}"
-                                        class="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm">
-                                    <option value="">Select Status</option>
-                                    <option value="good">Good</option>
-                                    <option value="defective">Defective</option>
-                                    <option value="na">N/A</option>
-                                    <option value="needs_attention">Needs Attention</option>
-                                </select>
-                            </td>
-                            <td class="px-4 py-2 text-left">
-                                <input type="date"
-                                       wire:model.live="itemDateCompleted.{{ $itemId }}"
-                                       class="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm">
-                            </td>
-                            <td class="px-4 py-2 text-left">
-                                <input type="text"
-                                       wire:model.live="itemRemarks.{{ $itemId }}"
-                                       class="block w-full rounded-md border-0 py-3 pl-4 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm"
-                                       placeholder="Enter remarks if any">
-                            </td>
-                        </tr>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                                <x-flowbite-dropdown id="pm-status-mobile-{{ $itemId }}"
+                                                     wire-model="itemStatus.{{ $itemId }}"
+                                                     :selected-value="$itemStatus[$itemId] ?? ''"
+                                                     :options="$statusOptions"
+                                                     placeholder="Select Status" />
+                                @error("itemStatus.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Date Completed</label>
+                                    <x-flowbite-datepicker id="pm-date-mobile-{{ $itemId }}"
+                                                           :value="$itemDateCompleted[$itemId] ?? ''"
+                                                           wire:model.live="itemDateCompleted.{{ $itemId }}" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Remarks (optional)</label>
+                                    <input type="text"
+                                           wire:model.live="itemRemarks.{{ $itemId }}"
+                                           class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-base sm:text-sm"
+                                           placeholder="Optional">
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
-                @endforeach
-            </tbody>
-        </table>
+                </div>
+
+                <!-- Desktop: table -->
+                <div class="hidden md:block border border-t-0 border-gray-300 rounded-b-lg overflow-visible bg-white">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Task</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Status</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Date Completed</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-56">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($items as $item)
+                                @php $itemId = $item['id']; @endphp
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-2 text-sm font-medium text-gray-900 align-top">
+                                        {{ $item['task_name'] }}
+                                        @if($item['finding_label'])
+                                            <span class="block text-xs font-normal text-gray-500 mt-0.5">{{ $item['finding_label'] }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2 align-top">
+                                        <x-flowbite-dropdown id="pm-status-desktop-{{ $itemId }}"
+                                                             wire-model="itemStatus.{{ $itemId }}"
+                                                             :selected-value="$itemStatus[$itemId] ?? ''"
+                                                             :options="$statusOptions"
+                                                             placeholder="Select Status" />
+                                        @error("itemStatus.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                    </td>
+                                    <td class="px-4 py-2 align-top">
+                                             <x-flowbite-datepicker id="pm-date-desktop-{{ $itemId }}"
+                                                        :value="$itemDateCompleted[$itemId] ?? ''"
+                                                        wire:model.live="itemDateCompleted.{{ $itemId }}" />
+                                    </td>
+                                    <td class="px-4 py-2 align-top">
+                                        <input type="text"
+                                               wire:model.live="itemRemarks.{{ $itemId }}"
+                                               class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-sm"
+                                               placeholder="Optional remarks">
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endforeach
     </div>
 
     <!-- Note Box -->
-    <div class="bg-gray-50 p-4 border border-gray-600 mb-4">
-        <div class="font-bold mb-2">NOTE:</div>
-        <div>
-            It is your responsibility to back-up the data, information or other files stored on your computer disk and/or drives. And the MIS shall not be responsible under any circumstance for any loss or corruption of data and/or software or hardware or any other part as well as CD's/DVDs, and other equipment's.
+    <div class="bg-gray-50 p-4 border border-gray-300 rounded-lg mb-6 text-sm">
+        <div class="font-bold mb-1 text-gray-900">Note</div>
+        <div class="text-gray-600">
+            It is your responsibility to back-up the data, information or other files stored on your computer disk and/or drives. The MIS shall not be responsible under any circumstance for any loss or corruption of data and/or software, hardware, or any other part, as well as CDs/DVDs and other equipment.
         </div>
     </div>
 
     <!-- Validation Errors -->
     @if($errors->any())
-        <div class="mt-4 p-3 bg-red-50 border border-red-400 text-red-700 rounded">
+        <div class="mb-6 p-3 bg-red-50 border border-red-400 text-red-700 rounded-lg text-sm">
             <div class="font-bold mb-1">Please fix the following:</div>
-            <ul class="list-disc pl-5">
+            <ul class="list-disc pl-5 space-y-0.5">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -164,55 +196,84 @@
     @endif
 
     @if(session('message'))
-        <div class="mt-4 p-3 bg-green-50 border border-green-400 text-green-700 rounded">
+        <div class="mb-6 p-3 bg-green-50 border border-green-400 text-green-700 rounded-lg text-sm">
             {{ session('message') }}
         </div>
     @endif
 
     @if(session('error'))
-        <div class="mt-4 p-3 bg-red-50 border border-red-400 text-red-700 rounded">
+        <div class="mb-6 p-3 bg-red-50 border border-red-400 text-red-700 rounded-lg text-sm">
             {{ session('error') }}
         </div>
     @endif
 
-    <!-- Footer -->
-    <div class="mt-6 text-right text-xs text-gray-500">
-        FM-MIS-008-02 Dated 11 June 2026
-    </div>
+    <!-- Save Button(s) -->
+    <div class="mb-6">
+        @if(!$isSubmitted && !($isEditMode && session('message')))
+            <p class="mb-2 text-sm text-gray-600">A status is required for each checklist item. Remarks are optional.</p>
+        @endif
 
-    <!-- Save Button Container -->
-    <div class="mt-6">
-        @if($isEditMode)
-            {{-- Edit mode: single Update button, then a link back to the records list --}}
+        @if($isEditMode && $isSubmitted)
             @if(!session('message'))
                 <button wire:click="save"
-                        class="w-full px-6 py-3 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800 rounded-lg disabled:opacity-50"
-                        @disabled(!$formReady)>
+                    wire:loading.attr="disabled"
+                    wire:target="save"
+                        class="w-full px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800 rounded-lg disabled:opacity-50"
+                    type="button">
                     Update Record
                 </button>
             @else
                 <button wire:click="backToRecordsList"
-                        class="w-full px-6 py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
+                        class="w-full px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
                     Back to Records List
                 </button>
             @endif
         @elseif(!$isSubmitted)
-            <button wire:click="save"
-                    class="w-full px-6 py-3 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800 rounded-lg disabled:opacity-50"
-                    @disabled(!$formReady)>
-                Save
-            </button>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button wire:click="save"
+                        wire:loading.attr="disabled"
+                        wire:target="save"
+                        class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800 rounded-lg disabled:opacity-50"
+                        type="button">
+                    Save
+                </button>
+                <button wire:click="saveAsDraft"
+                        wire:loading.attr="disabled"
+                        wire:target="saveAsDraft"
+                        class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-800 rounded-lg disabled:opacity-50"
+                        type="button">
+                    Save as Draft
+                </button>
+            </div>
         @else
-            <div class="flex space-x-3">
-                <button wire:click="conductAgain"
-                        class="flex-1 px-6 py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-800 rounded-lg">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button wire:click="requestConductAgainConfirmation"
+                        class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-800 rounded-lg">
                     Conduct Again
                 </button>
-                <button wire:click="backToOfficeSelection"
-                        class="flex-1 px-6 py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
+                <button wire:click="requestOfficeSelectionConfirmation"
+                        class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
                     Back to Office Selection
                 </button>
             </div>
         @endif
+    </div>
+
+    <x-flowbite-modal
+        id="pm-form-confirmation"
+        :show="(bool) $confirmationAction"
+        :title="$confirmationAction === 'conduct-again' ? 'Conduct another maintenance?' : 'Return to office selection?'"
+        :message="$confirmationAction === 'conduct-again'
+            ? 'The current form will be cleared so you can create another record for this office.'
+            : 'You will leave this form and return to the office selection page.'"
+        :confirm-text="$confirmationAction === 'conduct-again' ? 'Conduct Again' : 'Return to Selection'"
+        cancel-text="Stay on Form"
+        confirm-action="confirmAction"
+        cancel-action="cancelConfirmation"
+        confirm-button-class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium" />
+
+    <!-- Footer -->
+    <div class="text-right text-xs text-gray-400">
+        FM-MIS-008-02 Dated 11 June 2026
     </div>
 </div>
