@@ -17,10 +17,12 @@ class PreventiveMaintenanceForm extends Component
     public $name = '';
     public $position = '';
     public $date_started = '';
+    public $user_id = null; // Track the selected user for conducted_by relationship
 
     public $checklistItems = [];
     public $itemStatus = []; // item_id => string (good|defective|na|needs_attention)
-    public $itemRemarks = []; // item_id => string
+    public $itemRemarks = []; // item_id => optional specs/remarks
+    public $itemRecommendations = []; // item_id => selected recommendation
     public $itemDateCompleted = []; // item_id => string (date)
     public $itemDateEdited = []; // item_id => boolean (true if date completed manually edited)
 
@@ -82,6 +84,7 @@ class PreventiveMaintenanceForm extends Component
         $this->isEditMode = true;
         $this->editingRecordId = $pmRecord->id;
         $this->isDraft = $pmRecord->status === 'draft';
+        $this->user_id = $pmRecord->conducted_by; // Load the user_id for conducted_by relationship
 
         $this->office_id = $pmRecord->office_id;
         $this->name = $pmRecord->requested_by_name;
@@ -99,6 +102,7 @@ class PreventiveMaintenanceForm extends Component
             if ($existing) {
                 $this->itemStatus[$itemId] = $existing->status;
                 $this->itemRemarks[$itemId] = $existing->remarks ?? '';
+                $this->itemRecommendations[$itemId] = $existing->recommendation ?? '';
                 $this->itemDateCompleted[$itemId] = optional($existing->date_completed)->format('Y-m-d')
                     ?? $existing->date_completed
                     ?? '';
@@ -106,9 +110,11 @@ class PreventiveMaintenanceForm extends Component
             } else {
                 $this->itemStatus[$itemId] = null;
                 $this->itemRemarks[$itemId] = '';
+                $this->itemRecommendations[$itemId] = '';
                 $this->itemDateCompleted[$itemId] = $this->date_started;
                 $this->itemDateEdited[$itemId] = false;
             }
+
         }
 
         // Expand all sections by default in edit mode so the user sees everything at once
@@ -120,7 +126,7 @@ class PreventiveMaintenanceForm extends Component
 
     public function loadUsers()
     {
-        $this->users = User::select('name', 'position')->get()->toArray();
+        $this->users = User::select('id', 'name', 'position')->get()->toArray();
     }
 
     public function loadChecklistItems()
@@ -144,6 +150,7 @@ class PreventiveMaintenanceForm extends Component
             foreach ($this->checklistItems as $item) {
                 $this->itemStatus[$item['id']] = null;
                 $this->itemRemarks[$item['id']] = '';
+                $this->itemRecommendations[$item['id']] = '';
                 $this->itemDateCompleted[$item['id']] = $this->date_started;
                 $this->itemDateEdited[$item['id']] = false;
             }
@@ -170,16 +177,17 @@ class PreventiveMaintenanceForm extends Component
 
     public function updatedName($name)
     {
-        // Auto-fill position if exact case-insensitive match
+        // Auto-fill position and user_id if exact case-insensitive match
         $match = collect($this->users)->first(function ($user) use ($name) {
             return strtolower($user['name']) === strtolower($name);
         });
 
         if ($match) {
             $this->position = $match['position'];
+            $this->user_id = $match['id'];
         } else {
-            // If no match, clear the position field (it becomes empty and editable)
-            $this->position = '';
+            // Clear user_id if no match found
+            $this->user_id = null;
         }
     }
 
@@ -205,7 +213,7 @@ class PreventiveMaintenanceForm extends Component
         $this->itemStatus[$itemId] = $status;
 
         // Auto-fill date completed if not manually edited and status is set
-        if (!$this->itemDateEdited[$itemId] && in_array($status, ['good', 'defective', 'na', 'needs_attention'])) {
+        if (!$this->itemDateEdited[$itemId] && in_array($status, ['good', 'defective', 'na', 'needs_attention', 'done'])) {
             $this->itemDateCompleted[$itemId] = $this->date_started;
         }
         // If status is cleared, clear date completed if not manually edited
@@ -221,7 +229,11 @@ class PreventiveMaintenanceForm extends Component
     public function updatedItemRemarks($remarks, $itemId)
     {
         $this->itemRemarks[$itemId] = $remarks;
-        // If status is defective and remarks now filled, remove highlight (handled in view)
+    }
+
+    public function updatedItemRecommendations($recommendation, $itemId)
+    {
+        $this->itemRecommendations[$itemId] = $recommendation;
     }
 
     /**
@@ -243,7 +255,7 @@ class PreventiveMaintenanceForm extends Component
     {
         $this->itemStatus[$itemId] = $status;
         // Auto-fill date completed if not manually edited and status is set
-        if (!$this->itemDateEdited[$itemId] && in_array($status, ['good', 'defective', 'na', 'needs_attention'])) {
+        if (!$this->itemDateEdited[$itemId] && in_array($status, ['good', 'defective', 'na', 'needs_attention', 'done'])) {
             $this->itemDateCompleted[$itemId] = $this->date_started;
         }
         // If status is cleared, clear date completed if not manually edited
@@ -281,6 +293,7 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $this->office_id,
             'requested_by_name' => $this->name,
             'position' => $this->position,
+            'conducted_by' => $this->user_id,
             'date_started' => $this->date_started,
             'status' => 'pending',
         ]);
@@ -293,7 +306,8 @@ class PreventiveMaintenanceForm extends Component
                 'pm_checklist_item_id' => $itemId,
                 'status' => $this->itemStatus[$itemId],
                 'date_completed' => $this->itemDateCompleted[$itemId],
-                'remarks' => $this->itemRemarks[$itemId],
+                'remarks' => $this->itemRemarks[$itemId] ?: null,
+                'recommendation' => $this->itemRecommendations[$itemId] ?: null,
             ]);
         }
 
@@ -313,11 +327,7 @@ class PreventiveMaintenanceForm extends Component
 
         if ($this->isEditMode) {
             $this->updateExistingRecord('draft');
-            $this->savedPmRecordId = $this->editingRecordId;
-            $this->isDraft = true;
-            $this->confirmationAction = 'draft-saved';
-            session()->flash('message', 'Preventive maintenance draft has been updated.');
-            return;
+            return redirect()->route('office-selection');
         }
 
         // Save PM record as draft
@@ -328,6 +338,7 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $data['office_id'],
             'requested_by_name' => $data['name'],
             'position' => $data['position'],
+            'conducted_by' => $this->user_id,
             'date_started' => $data['date_started'],
             'status' => 'draft',
         ]);
@@ -341,15 +352,11 @@ class PreventiveMaintenanceForm extends Component
                 'status' => $this->itemStatus[$itemId] ?: 'pending',
                 'date_completed' => $this->itemDateCompleted[$itemId] ?: null,
                 'remarks' => $this->itemRemarks[$itemId] ?: null,
+                'recommendation' => $this->itemRecommendations[$itemId] ?: null,
             ]);
         }
 
-        $this->isEditMode = true;
-        $this->editingRecordId = $pmRecord->id;
-        $this->savedPmRecordId = $pmRecord->id;
-        $this->isDraft = true;
-        $this->confirmationAction = 'draft-saved';
-        session()->flash('message', 'Preventive maintenance record has been saved as draft.');
+        return redirect()->route('office-selection');
     }
 
     /**
@@ -364,6 +371,7 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $this->office_id,
             'requested_by_name' => $this->name,
             'position' => $this->position,
+            'conducted_by' => $this->user_id,
             'date_started' => $this->date_started,
         ];
         if ($status !== null) {
@@ -380,7 +388,8 @@ class PreventiveMaintenanceForm extends Component
             $data = [
                 'status' => $this->itemStatus[$itemId] ?: ($status === 'draft' ? 'pending' : null),
                 'date_completed' => $this->itemDateCompleted[$itemId] ?: null,
-                'remarks' => $this->itemRemarks[$itemId],
+                'remarks' => $this->itemRemarks[$itemId] ?: null,
+                'recommendation' => $this->itemRecommendations[$itemId] ?: null,
             ];
 
             if ($existing) {
@@ -399,14 +408,18 @@ class PreventiveMaintenanceForm extends Component
         }
     }
 
-    public function requestConductAgainConfirmation()
-    {
-        $this->confirmationAction = 'conduct-again';
-    }
-
     public function cancelConfirmation()
     {
+        if ($this->confirmationAction === 'saved') {
+            return redirect()->route('office-selection');
+        }
+
         $this->confirmationAction = null;
+    }
+
+    public function requestOfficeSelectionConfirmation()
+    {
+        $this->confirmationAction = 'office-selection';
     }
 
     public function confirmAction()
@@ -414,8 +427,13 @@ class PreventiveMaintenanceForm extends Component
         $action = $this->confirmationAction;
         $this->confirmationAction = null;
 
-        if ($action === 'conduct-again') {
+        if ($action === 'saved') {
             $this->conductAgain();
+            return;
+        }
+
+        if ($action === 'office-selection') {
+            return $this->backToOfficeSelection();
         }
     }
 
@@ -425,9 +443,11 @@ class PreventiveMaintenanceForm extends Component
         $this->reset([
             'name',
             'position',
+            'user_id',
             'date_started',
             'itemStatus',
             'itemRemarks',
+            'itemRecommendations',
             'itemDateCompleted',
             'itemDateEdited'
         ]);
@@ -489,8 +509,13 @@ class PreventiveMaintenanceForm extends Component
         // Dynamically add rules for checklist items
         foreach ($this->checklistItems as $item) {
             $itemId = $item['id'];
-            $rules["itemStatus.$itemId"] = 'required|in:good,defective,na,needs_attention';
+            $statuses = ['good', 'defective', 'na', 'needs_attention'];
+            if ($this->isKeyboardCleaningTask($item)) {
+                $statuses[] = 'done';
+            }
+            $rules["itemStatus.$itemId"] = 'required|in:' . implode(',', $statuses);
             $rules["itemRemarks.$itemId"] = 'nullable|string|max:500';
+            $rules["itemRecommendations.$itemId"] = 'nullable|string|max:255';
             $rules["itemDateCompleted.$itemId"] = 'nullable|date';
         }
 
@@ -505,6 +530,87 @@ class PreventiveMaintenanceForm extends Component
             'position' => 'required|string|max:255',
             'date_started' => 'required|date',
         ];
+    }
+
+    public function itemHasSpecs(array $item): bool
+    {
+        $task = strtolower($item['task_name']);
+
+        return str_contains($task, 'ram') || str_contains($task, 'storage');
+    }
+
+    public function itemAllowsFreeformRemarks(array $item): bool
+    {
+        return $this->itemHasSpecs($item);
+    }
+
+    public function itemRemarkPlaceholder(array $item): string
+    {
+        return $this->itemHasSpecs($item)
+            ? 'Optional specs, e.g. 8GB DDR4'
+            : 'Optional, e.g. Done Cleaning';
+    }
+
+    public function recommendationOptions(array $item): array
+    {
+        $task = strtolower($item['task_name']);
+
+        if ($this->isKeyboardCleaningTask($item)) {
+            return [];
+        }
+
+        if (str_contains($task, 'ram')) {
+            $labels = ['Upgrade RAM', 'Increase RAM Capacity'];
+        } elseif (str_contains($task, 'storage')) {
+            $labels = ['Upgrade from HDD to SSD', 'Upgrade Storage Capacity'];
+        } elseif (str_contains($task, 'keyboard') || str_contains(strtolower($item['section']), 'keyboard')) {
+            $labels = ['Change Keyboard'];
+        } elseif (str_contains($task, 'mouse') || str_contains(strtolower($item['section']), 'mouse')) {
+            $labels = ['Change Mouse'];
+        } else {
+            $target = match (true) {
+                str_contains($task, 'vga/hdmi') => 'VGA/HDMI Cable',
+                str_contains($task, 'power supply') => 'Power Supply Cable',
+                str_contains($task, 'power cable') => 'Power Cable',
+                str_contains($task, 'fan') => 'Fan',
+                str_contains($task, 'vertical lines') => 'Monitor',
+                str_contains($task, 'usb') => 'USB Port',
+                str_contains($task, 'ethernet') => 'Ethernet Port',
+                str_contains($task, 'cmos') => 'CMOS',
+                str_contains($task, 'windows') => 'Windows',
+                str_contains($task, 'anti-virus') => 'Antivirus',
+                str_contains($task, 'password') => 'System Password',
+                str_contains($task, 'keys') => 'Keyboard Keys',
+                str_contains($task, 'clean') => 'Keyboard',
+                default => $item['section'],
+            };
+            $labels = ['Repair ' . $target, 'Replace ' . $target];
+        }
+
+        return array_map(fn ($label) => ['label' => $label, 'value' => $label], $labels);
+    }
+
+    public function isKeyboardCleaningTask(array $item): bool
+    {
+        $task = strtolower($item['task_name']);
+
+        return str_contains($task, 'dust') && str_contains($task, 'keyboard');
+    }
+
+    public function statusOptions(array $item): array
+    {
+        $options = [
+            ['label' => 'Good', 'value' => 'good'],
+            ['label' => 'Defective', 'value' => 'defective'],
+            ['label' => 'N/A', 'value' => 'na'],
+            ['label' => 'Needs Attention', 'value' => 'needs_attention'],
+        ];
+
+        if ($this->isKeyboardCleaningTask($item)) {
+            $options[] = ['label' => 'Done', 'value' => 'done'];
+        }
+
+        return $options;
     }
 
     public function render()
