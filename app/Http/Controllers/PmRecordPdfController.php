@@ -28,8 +28,8 @@ class PmRecordPdfController extends Controller
             $item->recommendation = $this->sanitizeString($item->recommendation);
         }
 
-        $preparedBy = auth()->user()?->name;
-        $preparedByPosition = auth()->user()?->position ?: 'MIS Staff';
+        $preparedBy = $record->conductedBy?->name ?? '-';
+        $preparedByPosition = $record->conductedBy?->position ?? '-';
 
         return Pdf::loadView('pdf.pm-record', [
             'record' => $record,
