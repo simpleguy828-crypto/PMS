@@ -11,6 +11,7 @@ class PmRecord extends Model
         'requested_by_name',
         'position',
         'date_started',
+        'conducted_by',
         'status',
         // NOTE: 'department' is passed by PreventiveMaintenanceForm::save() but was
         // missing from $fillable before, so it was being silently dropped on save.
@@ -40,5 +41,13 @@ class PmRecord extends Model
     public function recordItems()
     {
         return $this->hasMany(PmRecordItem::class);
+    }
+
+    /**
+     * The user who conducted this PM inspection.
+     */
+    public function conductedBy()
+    {
+        return $this->belongsTo(User::class, 'conducted_by');
     }
 }

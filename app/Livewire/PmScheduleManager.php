@@ -23,6 +23,8 @@ class PmScheduleManager extends Component
     public $reschedulingOfficeId = null;
     public $rescheduleDate = '';
     public $monthFilter = '';
+    public $officeSearch = '';
+    public $officeSortOrder = 'name_asc';
 
     protected function rules()
     {
@@ -63,16 +65,41 @@ class PmScheduleManager extends Component
                     (int) ($scheduleOffice->office->computer_count ?? 0)
                 );
             }
+
+            $scheduleOffices = $schedule->scheduleOffices;
+            if (trim($this->officeSearch) !== '') {
+                $search = mb_strtolower(trim($this->officeSearch));
+                $scheduleOffices = $scheduleOffices->filter(fn ($scheduleOffice) => str_contains(
+                    mb_strtolower($scheduleOffice->office->name),
+                    $search
+                ));
+            }
+
+            $scheduleOffices = $this->officeSortOrder === 'name_desc'
+                ? $scheduleOffices->sortByDesc(fn ($scheduleOffice) => mb_strtolower($scheduleOffice->office->name))
+                : $scheduleOffices->sortBy(fn ($scheduleOffice) => mb_strtolower($scheduleOffice->office->name));
+            $schedule->setRelation('scheduleOffices', $scheduleOffices->values());
         }
 
         return view('livewire.pm-schedule-manager', [
             'schedules' => $schedules,
             'offices' => $this->availableOffices(),
             'drawerTitle' => $this->drawerTitle(),
+            'officeSortOptions' => [
+                ['label' => 'Office name: A to Z', 'value' => 'name_asc'],
+                ['label' => 'Office name: Z to A', 'value' => 'name_desc'],
+            ],
             'reschedulingOffice' => $this->reschedulingOfficeId
                 ? PmScheduleOffice::with(['office', 'schedule'])->find($this->reschedulingOfficeId)
                 : null,
         ]);
+    }
+
+    public function updatedOfficeSortOrder($value)
+    {
+        if (!in_array($value, ['name_asc', 'name_desc'], true)) {
+            $this->officeSortOrder = 'name_asc';
+        }
     }
 
     public function createSchedule()

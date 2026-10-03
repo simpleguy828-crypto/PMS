@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PmRecordItem extends Model
 {
-    protected $fillable = ['pm_record_id', 'pm_checklist_item_id', 'status', 'date_completed', 'remarks'];
+    protected $fillable = ['pm_record_id', 'pm_checklist_item_id', 'status', 'date_completed', 'remarks', 'recommendation'];
 
     protected $casts = [
         'date_completed' => 'date',

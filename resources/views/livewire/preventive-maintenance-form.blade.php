@@ -128,19 +128,17 @@
 
                 <!-- Desktop: table -->
                 <div class="hidden md:block border border-t-0 border-gray-300 rounded-b-lg overflow-visible bg-white">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr class="bg-gray-50">
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Task</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Status</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Date Completed</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-56">Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
+                    @component('components.table')
+                        @slot('slotHeader')
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Task</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Date Completed</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-56">Remarks</th>
+                        @endslot
+                        @slot('slotBody')
                             @foreach($items as $item)
                                 @php $itemId = $item['id']; @endphp
-                                <tr class="hover:bg-gray-50">
+                                <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
                                     <td class="px-4 py-2 text-sm font-medium text-gray-900 align-top">
                                         {{ $item['task_name'] }}
                                         @if($item['finding_label'])
@@ -168,8 +166,8 @@
                                     </td>
                                 </tr>
                             @endforeach
-                        </tbody>
-                    </table>
+                        @endslot
+                    @endcomponent
                 </div>
             </div>
         @endforeach
@@ -251,7 +249,7 @@
                         class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-800 rounded-lg">
                     Conduct Again
                 </button>
-                <button wire:click="requestOfficeSelectionConfirmation"
+                <button wire:click="backToOfficeSelection"
                         class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
                     Back to Office Selection
                 </button>
@@ -261,13 +259,17 @@
 
     <x-flowbite-modal
         id="pm-form-confirmation"
-        :show="(bool) $confirmationAction"
-        :title="$confirmationAction === 'conduct-again' ? 'Conduct another maintenance?' : 'Return to office selection?'"
+        :show="in_array($confirmationAction, ['conduct-again', 'saved', 'draft-saved'], true)"
+        :title="$confirmationAction === 'conduct-again'
+            ? 'Conduct another maintenance?'
+            : ($confirmationAction === 'draft-saved' ? 'Draft saved' : 'Record saved')"
         :message="$confirmationAction === 'conduct-again'
             ? 'The current form will be cleared so you can create another record for this office.'
-            : 'You will leave this form and return to the office selection page.'"
-        :confirm-text="$confirmationAction === 'conduct-again' ? 'Conduct Again' : 'Return to Selection'"
-        cancel-text="Stay on Form"
+            : ($confirmationAction === 'draft-saved'
+                ? 'Your draft is saved. Resume it from Office Selection or continue editing here.'
+                : 'Your preventive maintenance record has been saved successfully.')"
+        :confirm-text="$confirmationAction === 'conduct-again' ? 'Conduct Again' : 'Continue Editing'"
+        :cancel-text="$confirmationAction === 'conduct-again' ? 'Stay on Form' : 'Close'"
         confirm-action="confirmAction"
         cancel-action="cancelConfirmation"
         confirm-button-class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium" />

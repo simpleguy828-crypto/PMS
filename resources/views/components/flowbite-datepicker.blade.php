@@ -4,7 +4,12 @@
     'value' => '',
     'placeholder' => 'Select date',
     'dateFormat' => 'yyyy-mm-dd',
+    'surface' => 'neutral',
 ])
+
+@php
+    $surfaceClass = $surface === 'white' ? 'bg-white' : 'bg-neutral-secondary-medium';
+@endphp
 
 <div class="relative">
     <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
@@ -24,5 +29,5 @@
            @endif
            value="{{ $value }}"
            placeholder="{{ $placeholder }}"
-           {{ $attributes->merge(['class' => 'block w-full rounded-base border border-default-medium bg-neutral-secondary-medium py-2.5 pe-3 ps-9 text-sm text-heading shadow-xs placeholder:text-body focus:border-brand focus:ring-brand']) }}>
+           {{ $attributes->merge(['class' => 'block w-full rounded-base border border-default-medium ' . $surfaceClass . ' py-2.5 pe-3 ps-9 text-sm text-heading shadow-xs placeholder:text-body focus:border-brand focus:ring-brand']) }}>
 </div>

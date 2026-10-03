@@ -1,42 +1,4 @@
 <div class="max-w-7xl mx-auto p-2">
-    <!-- Navigation Tabs Component -->
-    @component('components.navigation-tabs', [
-        'tabs' => [
-             [
-                'label' => 'Dashboard',
-                'route' => 'dashboard',
-                'method' => 'navigateToDashboard',
-                'id' => 'dashboard'
-            ],
-            [
-                'label' => 'Conduct Preventive Maintenance',
-                'route' => 'office-selection',
-                'method' => 'navigateToOfficeSelection',
-                'id' => 'office-selection'
-            ],
-            [
-                'label' => 'Records',
-                'route' => 'pm-records-list',
-                'method' => 'navigateToRecords',
-                'id' => 'pm-records-list'
-            ],
-            [
-                'label' => 'Manage Offices',
-                'route' => 'office-manager',
-                'method' => 'navigateToOfficeManager',
-                'id' => 'office-manager'
-            ],
-            [
-                'label' => 'PM Schedule Manager',
-                'route' => 'pm-schedule-manager',
-                'method' => 'navigateToScheduleManager',
-                'id' => 'schedule-manager'
-            ],
-        ],
-        'currentTab' => 'office-selection' // Highlight the Office Selection tab since we're on this page
-    ])
-     @endcomponent
-
     <!-- Header -->
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-center text-gray-800">
@@ -51,8 +13,8 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach($offices as $office)
             <!-- Office Card -->
-            <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                 wire:click.prevent="selectOffice({{ $office->id }})">
+              @php $draft = $draftsByOffice->get($office->id); @endphp
+              <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white">
                 <div class="p-6">
                     <!-- Office Info -->
                     <div class="mb-4">
@@ -89,6 +51,29 @@
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="mt-5 border-t border-gray-200 pt-4">
+                        @if($draft)
+                            <p class="mb-3 text-sm text-amber-800">
+                                Draft for {{ $draft->requested_by_name }} · last saved {{ $draft->updated_at->format('M d, Y g:i A') }}
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" wire:click="resumeDraft({{ $draft->id }})"
+                                        class="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                    Resume Draft
+                                </button>
+                                <button type="button" wire:click="selectOffice({{ $office->id }})"
+                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                    Start New PM
+                                </button>
+                            </div>
+                        @else
+                            <button type="button" wire:click="selectOffice({{ $office->id }})"
+                                    class="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                Start Preventive Maintenance
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>

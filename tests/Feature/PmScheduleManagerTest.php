@@ -65,6 +65,47 @@ class PmScheduleManagerTest extends TestCase
         ]);
     }
 
+    public function test_schedule_office_table_can_search_and_sort_office_names(): void
+    {
+        $alphaOffice = Office::create([
+            'name' => 'Alpha Office',
+            'status' => 'active',
+            'computer_count' => 2,
+        ]);
+        $zuluOffice = Office::create([
+            'name' => 'Zulu Office',
+            'status' => 'active',
+            'computer_count' => 2,
+        ]);
+        $schedule = PmSchedule::create(['scheduled_date' => now()->toDateString()]);
+        $alphaAssignment = PmScheduleOffice::create([
+            'pm_schedule_id' => $schedule->id,
+            'office_id' => $alphaOffice->id,
+            'current_scheduled_date' => now()->toDateString(),
+        ]);
+        $zuluAssignment = PmScheduleOffice::create([
+            'pm_schedule_id' => $schedule->id,
+            'office_id' => $zuluOffice->id,
+            'current_scheduled_date' => now()->toDateString(),
+        ]);
+
+        $component = Livewire::test(PmScheduleManager::class)
+            ->assertSee('Office name: A to Z')
+            ->assertSeeInOrder([
+                'Alpha Office',
+                'Zulu Office',
+            ]);
+
+        $component->set('officeSortOrder', 'name_desc')
+            ->assertSeeInOrder([
+                'Zulu Office',
+                'Alpha Office',
+            ])
+            ->set('officeSearch', 'Alpha')
+            ->assertSee('wire:key="schedule-office-' . $alphaAssignment->id . '"', false)
+            ->assertDontSee('wire:key="schedule-office-' . $zuluAssignment->id . '"', false);
+    }
+
     public function test_later_schedule_records_do_not_complete_an_earlier_schedule(): void
     {
         $office = Office::create([

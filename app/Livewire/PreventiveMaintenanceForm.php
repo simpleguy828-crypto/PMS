@@ -266,9 +266,10 @@ class PreventiveMaintenanceForm extends Component
             $this->updateExistingRecord($this->isDraft ? 'pending' : null);
             if ($this->isDraft) {
                 $this->isDraft = false;
-                $this->isSubmitted = true;
                 $this->savedPmRecordId = $this->editingRecordId;
             }
+            $this->isSubmitted = true;
+            $this->confirmationAction = 'saved';
             return;
         }
 
@@ -300,6 +301,7 @@ class PreventiveMaintenanceForm extends Component
         $this->isSubmitted = true;
         $this->savedPmRecordId = $pmRecord->id;
         $this->isDraft = false;
+        $this->confirmationAction = 'saved';
 
         // Show success message
         session()->flash('message', 'Preventive maintenance record has been saved.');
@@ -311,6 +313,9 @@ class PreventiveMaintenanceForm extends Component
 
         if ($this->isEditMode) {
             $this->updateExistingRecord('draft');
+            $this->savedPmRecordId = $this->editingRecordId;
+            $this->isDraft = true;
+            $this->confirmationAction = 'draft-saved';
             session()->flash('message', 'Preventive maintenance draft has been updated.');
             return;
         }
@@ -343,6 +348,7 @@ class PreventiveMaintenanceForm extends Component
         $this->editingRecordId = $pmRecord->id;
         $this->savedPmRecordId = $pmRecord->id;
         $this->isDraft = true;
+        $this->confirmationAction = 'draft-saved';
         session()->flash('message', 'Preventive maintenance record has been saved as draft.');
     }
 
@@ -398,11 +404,6 @@ class PreventiveMaintenanceForm extends Component
         $this->confirmationAction = 'conduct-again';
     }
 
-    public function requestOfficeSelectionConfirmation()
-    {
-        $this->confirmationAction = 'office-selection';
-    }
-
     public function cancelConfirmation()
     {
         $this->confirmationAction = null;
@@ -415,8 +416,6 @@ class PreventiveMaintenanceForm extends Component
 
         if ($action === 'conduct-again') {
             $this->conductAgain();
-        } elseif ($action === 'office-selection') {
-            return $this->backToOfficeSelection();
         }
     }
 
@@ -437,6 +436,7 @@ class PreventiveMaintenanceForm extends Component
         $this->date_started = Carbon::today()->toDateString();
         $this->isSubmitted = false;
         $this->savedPmRecordId = null;
+        $this->isDraft = false;
 
         // Reinitialize checklist items
         $this->loadChecklistItems();
@@ -450,7 +450,6 @@ class PreventiveMaintenanceForm extends Component
 
     public function backToOfficeSelection()
     {
-        // Redirect to office selection screen
         return redirect()->route('office-selection');
     }
 

@@ -25,9 +25,17 @@ class PmRecordPdfController extends Controller
             }
 
             $item->remarks = $this->sanitizeString($item->remarks);
+            $item->recommendation = $this->sanitizeString($item->recommendation);
         }
 
-        return Pdf::loadView('pdf.pm-record', ['record' => $record])
+        $preparedBy = auth()->user()?->name;
+        $preparedByPosition = auth()->user()?->position ?: 'MIS Staff';
+
+        return Pdf::loadView('pdf.pm-record', [
+            'record' => $record,
+            'preparedBy' => $this->sanitizeString($preparedBy),
+            'preparedByPosition' => $this->sanitizeString($preparedByPosition),
+        ])
             ->setPaper([0, 0, 612, 936], 'portrait')
             ->download('pm-record-' . $record->id . '.pdf');
     }

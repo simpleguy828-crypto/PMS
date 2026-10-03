@@ -1,15 +1,4 @@
 <div class="max-w-7xl mx-auto p-2">
-    @component('components.navigation-tabs', [
-        'tabs' => [
-            ['label' => 'Dashboard', 'route' => 'dashboard', 'method' => 'navigateToDashboard', 'id' => 'dashboard'],
-            ['label' => 'Conduct Preventive Maintenance', 'route' => 'office-selection', 'method' => 'navigateToOfficeSelection', 'id' => 'office-selection'],
-            ['label' => 'Records', 'route' => 'pm-records-list', 'method' => 'navigateToRecords', 'id' => 'pm-records-list'],
-            ['label' => 'Manage Offices', 'route' => 'office-manager', 'method' => 'navigateToOfficeManager', 'id' => 'office-manager'],
-            ['label' => 'PM Schedule Manager', 'route' => 'pm-schedule-manager', 'method' => 'navigateToScheduleManager', 'id' => 'schedule-manager'],
-        ],
-        'currentTab' => 'schedule-manager'
-    ])@endcomponent
-
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 class="text-3xl font-bold text-heading">PM Schedule Manager</h1>
         <div class="flex flex-wrap items-end gap-3">
@@ -47,54 +36,56 @@
                     @endif
                 </summary>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-body">
-                        <thead class="bg-neutral-secondary-medium text-xs uppercase text-heading">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">Office</th>
-                                <th scope="col" class="px-4 py-3">Scheduled Date</th>
-                                <th scope="col" class="px-4 py-3">Status</th>
-                                <th scope="col" class="px-4 py-3">Action</th>
+                @component('components.table', [
+                    'searchModel' => 'officeSearch',
+                    'searchInputId' => 'schedule-office-search-' . $schedule->id,
+                    'searchLabel' => 'Search offices in this schedule',
+                    'searchPlaceholder' => 'Search assigned offices...',
+                    'filterModel' => 'officeSortOrder',
+                    'filterId' => 'schedule-office-sort-' . $schedule->id,
+                    'filterLabel' => 'Sort scheduled offices',
+                    'filterPlaceholder' => 'Sort offices by name',
+                    'filterOptions' => $officeSortOptions,
+                    'filterValue' => $officeSortOrder,
+                ])
+                    @slot('slotHeader')
+                        <th scope="col" class="px-6 py-3 text-left">Office</th>
+                        <th scope="col" class="px-6 py-3 text-left">Scheduled Date</th>
+                        <th scope="col" class="px-6 py-3 text-left">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left">Action</th>
+                    @endslot
+                    @slot('slotBody')
+                        @forelse($schedule->scheduleOffices as $scheduleOffice)
+                            @php
+                                $completed = $scheduleOffice->completion_status === 'Completed';
+                                $badgeClass = $completed
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : ($scheduleOffice->completion_count > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700');
+                            @endphp
+                            <tr wire:key="schedule-office-{{ $scheduleOffice->id }}" class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                                <td class="px-6 py-4 font-medium text-heading">{{ $scheduleOffice->office->name }}</td>
+                                <td class="px-6 py-4 text-body">{{ $scheduleOffice->current_scheduled_date->format('M j, Y') }}</td>
+                                <td class="px-6 py-4 text-body">
+                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $badgeClass }}">
+                                        {{ $scheduleOffice->completion_status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-body">
+                                    @unless($completed)
+                                        <div class="flex items-center gap-3">
+                                            <button type="button" wire:click="beginReschedule({{ $scheduleOffice->id }})" class="font-medium text-brand hover:underline">Reschedule</button>
+                                            <button type="button" wire:click="removeOffice({{ $scheduleOffice->id }})" wire:confirm="Remove {{ $scheduleOffice->office->name }} from this schedule?" class="font-medium text-red-700 hover:underline">Remove</button>
+                                        </div>
+                                    @else
+                                        <button type="button" wire:click="removeOffice({{ $scheduleOffice->id }})" wire:confirm="Remove {{ $scheduleOffice->office->name }} from this schedule?" class="font-medium text-red-700 hover:underline">Remove</button>
+                                    @endunless
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($schedule->scheduleOffices as $scheduleOffice)
-                                @php
-                                    $completed = $scheduleOffice->completion_status === 'Completed';
-                                    $badgeClass = $completed
-                                        ? 'bg-emerald-100 text-emerald-800'
-                                        : ($scheduleOffice->completion_count > 0 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700');
-                                @endphp
-                                <tr wire:key="schedule-office-{{ $scheduleOffice->id }}" class="border-b border-default-medium last:border-0">
-                                    <td class="px-4 py-3 font-medium text-heading">{{ $scheduleOffice->office->name }}</td>
-                                    <td class="px-4 py-3">{{ $scheduleOffice->current_scheduled_date->format('M j, Y') }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $badgeClass }}">
-                                            {{ $scheduleOffice->completion_status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        @unless($completed)
-                                            <div class="flex items-center gap-3">
-                                                <button type="button" wire:click="beginReschedule({{ $scheduleOffice->id }})"
-                                                        class="font-medium text-brand hover:underline">Reschedule</button>
-                                                <button type="button" wire:click="removeOffice({{ $scheduleOffice->id }})"
-                                                        wire:confirm="Remove {{ $scheduleOffice->office->name }} from this schedule?"
-                                                        class="font-medium text-red-700 hover:underline">Remove</button>
-                                            </div>
-                                        @else
-                                            <button type="button" wire:click="removeOffice({{ $scheduleOffice->id }})"
-                                                    wire:confirm="Remove {{ $scheduleOffice->office->name }} from this schedule?"
-                                                    class="font-medium text-red-700 hover:underline">Remove</button>
-                                        @endunless
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="4" class="px-4 py-8 text-center text-body">No offices are assigned to this schedule.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr><td colspan="4" class="px-6 py-8 text-center text-body">No matching offices are assigned to this schedule.</td></tr>
+                        @endforelse
+                    @endslot
+                @endcomponent
             </details>
         @empty
             <div class="border-y border-default-medium py-12 text-center text-body">
@@ -114,7 +105,7 @@
                     </div>
                     <div>
                         <label for="reschedule-date" class="mb-2 block text-sm font-medium text-heading">New Date</label>
-                           <x-flowbite-datepicker id="reschedule-date" :value="$rescheduleDate" wire:model="rescheduleDate" required />
+                           <x-flowbite-datepicker id="reschedule-date" :value="$rescheduleDate" surface="white" wire:model="rescheduleDate" required />
                         @error('rescheduleDate') <span class="mt-1 text-sm text-red-600">{{ $message }}</span> @enderror
                     </div>
                 </div>
@@ -122,7 +113,7 @@
                 <div class="space-y-5">
                     <div>
                         <label for="scheduled-date" class="mb-2 block text-sm font-medium text-heading">Scheduled Date</label>
-                           <x-flowbite-datepicker id="scheduled-date" :value="$scheduledDate" wire:model="scheduledDate" required />
+                           <x-flowbite-datepicker id="scheduled-date" :value="$scheduledDate" surface="white" wire:model="scheduledDate" required />
                         @error('scheduledDate') <span class="mt-1 text-sm text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <fieldset>
@@ -146,7 +137,7 @@
                     <div>
                         <label for="schedule-notes" class="mb-2 block text-sm font-medium text-heading">Notes <span class="font-normal text-body">(optional)</span></label>
                         <textarea id="schedule-notes" wire:model="notes" rows="3"
-                                  class="block w-full rounded-base border border-default-medium bg-neutral-secondary-medium p-3 text-sm text-heading focus:border-brand focus:ring-brand"></textarea>
+                                  class="block w-full rounded-base border border-default-medium bg-white p-3 text-sm text-heading focus:border-brand focus:ring-brand"></textarea>
                         @error('notes') <span class="mt-1 text-sm text-red-600">{{ $message }}</span> @enderror
                     </div>
                 </div>

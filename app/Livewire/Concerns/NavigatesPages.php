@@ -17,6 +17,10 @@ trait NavigatesPages
                 return redirect()->route('office-manager');
             case 'pm-schedule-manager':
                 return redirect()->route('pm-schedule-manager');
+            case 'admin.accounts':
+                return redirect()->route('admin.accounts');
+            case 'profile':
+                return redirect()->route('profile');
             default:
                 break;
         }

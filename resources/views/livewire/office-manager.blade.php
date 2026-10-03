@@ -1,41 +1,4 @@
 <div class="max-w-7xl mx-auto p-2">
-    <!-- Navigation Tabs Component -->
-    @component('components.navigation-tabs', [
-        'tabs' => [
-            [
-                'label' => 'Dashboard',
-                'route' => 'dashboard',
-                'method' => 'navigateToDashboard',
-                'id' => 'dashboard'
-            ],
-            [
-                'label' => 'Conduct Preventive Maintenance',
-                'route' => 'office-selection',
-                'method' => 'navigateToOfficeSelection',
-                'id' => 'office-selection'
-            ],
-            [
-                'label' => 'Records',
-                'route' => 'pm-records-list',
-                'method' => 'navigateToRecords',
-                'id' => 'pm-records-list'
-            ],
-            [
-                'label' => 'Manage Offices',
-                'route' => 'office-manager',
-                'method' => 'navigateToOfficeManager',
-                'id' => 'office-manager'
-            ],
-            [
-                'label' => 'PM Schedule Manager',
-                'route' => 'pm-schedule-manager',
-                'method' => 'navigateToScheduleManager',
-                'id' => 'schedule-manager'
-            ],
-        ],
-        'currentTab' => 'office-manager' // Highlight the Manage Offices tab since we're on this page
-    ])
- @endcomponent
     <div class="mb-6 flex justify-between items-center">
         <h1 class="text-3xl font-bold text-heading">Office Manager</h1>
         @component('components.add-button', [
@@ -45,25 +8,20 @@
         @endcomponent
     </div>
 
-    <div class="mb-5 relative">
-        <label for="search" class="block mb-2 text-sm font-medium text-heading sr-only">Search offices by name</label>
-        <div class="relative">
-            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
-            </div>
-            <input type="search"
-                   id="search"
-                   wire:model.live.debounce.300ms="search"
-                   placeholder="Search offices by name..."
-                   class="block w-full p-4 ps-10 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-                   autocomplete="off">
-        </div>
-    </div>
-
     @component('components.table', [
+        'searchModel' => 'search',
+        'searchInputId' => 'office-search',
+        'searchLabel' => 'Search offices',
+        'searchPlaceholder' => 'Search offices by name...',
+        'filterModel' => 'sortOrder',
+        'filterId' => 'office-sort',
+        'filterLabel' => 'Sort offices',
+        'filterPlaceholder' => 'Sort offices by',
+        'filterOptions' => $sortOptions,
+        'filterValue' => $sortOrder,
         'headers' => [
             ['label' => 'Name', 'field' => 'name', 'sortable' => true],
-            ['label' => 'Computers', 'field' => 'computers', 'sortable' => true],
+            ['label' => 'Computers', 'field' => 'computer_count', 'sortable' => true],
             ['label' => 'Status', 'field' => 'status', 'sortable' => true],
             ['label' => 'Actions', 'field' => 'actions', 'sortable' => false]
         ],
@@ -80,6 +38,7 @@
         }
     ])
     @endcomponent
+    <x-pagination :paginator="$offices" :per-page="$perPage" item-label="offices" />
 
     @component('components.flowbite-drawer', ['title' => $editingOfficeId ? "Edit Office: {$this->name}" : 'Create New Office'])
         <form wire:submit.prevent="saveOffice">
@@ -89,7 +48,7 @@
                     <input type="text"
                            id="office-name"
                            wire:model="name"
-                           class="block w-full p-3 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                           class="block w-full p-3 bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
                            placeholder="Enter office name"
                            required>
                     @error('name') <span class="mt-1 text-sm text-red-500 dark:text-red-400">{{ $message }}</span> @enderror
@@ -101,7 +60,7 @@
                            id="office-computer-count"
                            wire:model="computer_count"
                            min="0"
-                           class="block w-full p-3 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                           class="block w-full p-3 bg-white border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
                            placeholder="Enter number of computers"
                            required>
                     @error('computer_count') <span class="mt-1 text-sm text-red-500 dark:text-red-400">{{ $message }}</span> @enderror
@@ -112,6 +71,7 @@
                     <x-flowbite-dropdown id="office-status"
                                          wire-model="status"
                                          :selected-value="$status"
+                                         surface="white"
                                          :options="[['label' => 'Active', 'value' => 'active'], ['label' => 'Inactive', 'value' => 'inactive']]" />
                     @error('status') <span class="mt-1 text-sm text-red-500 dark:text-red-400">{{ $message }}</span> @enderror
                 </div>

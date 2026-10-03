@@ -23,6 +23,8 @@ class OfficeManager extends Component
     public $search = '';
     public $sortField = 'name';
     public $sortAsc = true;
+    public $sortOrder = 'name_asc';
+    public $perPage = 10;
 
     protected $layout = 'components.layouts.app';
 
@@ -48,19 +50,66 @@ class OfficeManager extends Component
                 $query->where('name', 'like', '%' . $this->search . '%');
             })
             ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-            ->paginate(10);
+            ->paginate($this->perPage);
 
-        return view('livewire.office-manager', compact('offices'));
+        return view('livewire.office-manager', [
+            'offices' => $offices,
+            'sortOptions' => [
+                ['label' => 'Name: A to Z', 'value' => 'name_asc'],
+                ['label' => 'Name: Z to A', 'value' => 'name_desc'],
+                ['label' => 'Computers: low to high', 'value' => 'computers_asc'],
+                ['label' => 'Computers: high to low', 'value' => 'computers_desc'],
+                ['label' => 'Status: A to Z', 'value' => 'status_asc'],
+                ['label' => 'Status: Z to A', 'value' => 'status_desc'],
+            ],
+        ]);
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage($value)
+    {
+        $this->perPage = in_array((int) $value, [10, 25, 50, 100], true) ? (int) $value : 10;
+        $this->resetPage();
     }
 
     public function sortBy($field)
     {
+        if (!in_array($field, ['name', 'computer_count', 'status'], true)) {
+            return;
+        }
+
+        $this->resetPage();
+
         if ($this->sortField === $field) {
             $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortField = $field;
             $this->sortAsc = true;
         }
+
+        $order = $this->sortAsc ? 'asc' : 'desc';
+        $this->sortOrder = $this->sortField === 'computer_count'
+            ? 'computers_' . $order
+            : $this->sortField . '_' . $order;
+    }
+
+    public function updatedSortOrder($value)
+    {
+        $sorts = [
+            'name_asc' => ['name', true],
+            'name_desc' => ['name', false],
+            'computers_asc' => ['computer_count', true],
+            'computers_desc' => ['computer_count', false],
+            'status_asc' => ['status', true],
+            'status_desc' => ['status', false],
+        ];
+        $this->sortOrder = array_key_exists($value, $sorts) ? $value : 'name_asc';
+        [$this->sortField, $this->sortAsc] = $sorts[$this->sortOrder];
+        $this->resetPage();
     }
 
     public function createOffice()
@@ -132,7 +181,7 @@ class OfficeManager extends Component
         Office::findOrFail($id)->delete();
         session()->flash('message', 'Office deleted successfully.');
 
-        if ($this->getPage() > 1 && Office::count() <= ($this->getPage() - 1) * 10) {
+        if ($this->getPage() > 1 && Office::count() <= ($this->getPage() - 1) * $this->perPage) {
             $this->previousPage();
         }
     }

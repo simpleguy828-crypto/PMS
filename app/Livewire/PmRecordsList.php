@@ -21,9 +21,10 @@ class PmRecordsList extends Component
     use WithPagination;
 
     public $search = '';
+    public $sortOrder = 'desc';
     public $sortField = 'date_started';
     public $sortAsc = false;
-    public $perPage = 15;
+    public $perPage = 10;
 
     protected $paginationTheme = 'bootstrap';
 
@@ -33,45 +34,100 @@ class PmRecordsList extends Component
         $this->resetPage();
     }
 
-    public function updatingPerPage()
+    public function updatedPerPage($value)
     {
-        // Ensure perPage is a valid integer
-        $this->perPage = intval($this->perPage);
-        if ($this->perPage <= 0) {
-            $this->perPage = 15;
-        }
+        $this->perPage = in_array((int) $value, [10, 25, 50, 100], true) ? (int) $value : 10;
+        $this->resetPage();
+    }
+
+    public function updatedSortOrder($value)
+    {
+        $sorts = [
+            'date_desc' => ['date_started', false],
+            'date_asc' => ['date_started', true],
+            'name_asc' => ['requested_by_name', true],
+            'name_desc' => ['requested_by_name', false],
+            'office_asc' => ['office', true],
+            'office_desc' => ['office', false],
+            'position_asc' => ['position', true],
+            'position_desc' => ['position', false],
+        ];
+        $this->sortOrder = array_key_exists($value, $sorts) ? $value : 'date_desc';
+        [$this->sortField, $this->sortAsc] = $sorts[$this->sortOrder];
+
+        $this->resetPage();
     }
 
     public function sortBy($field)
     {
-        // Sanitize the field name
-        $field = $this->sanitizeString($field);
-
-        // Validate the field against a list of allowed columns to prevent SQL injection
-        $allowedFields = ['date_started', 'requested_by_name', 'position', 'office.name'];
-        if (!in_array($field, $allowedFields)) {
-            $field = 'date_started';
+        if (!in_array($field, ['date_started', 'requested_by_name', 'office', 'position'], true)) {
+            return;
         }
 
-        if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
-        } else {
-            $this->sortAsc = true;
-            $this->sortField = $field;
-        }
+        $this->sortAsc = $this->sortField === $field ? !$this->sortAsc : true;
+        $this->sortField = $field;
+        $direction = $this->sortAsc ? 'asc' : 'desc';
+        $this->sortOrder = match ($field) {
+            'date_started' => 'date_' . $direction,
+            'requested_by_name' => 'name_' . $direction,
+            'office' => 'office_' . $direction,
+            'position' => 'position_' . $direction,
+        };
+        $this->resetPage();
     }
 
     public function getRecordsProperty()
     {
-        return PmRecord::with(['office'])
+        $query = PmRecord::with(['office', 'recordItems.checklistItem', 'conductedBy'])
             ->when($this->search, function ($query) {
-                $query->whereHas('office', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                })->orWhere('requested_by_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('position', 'like', '%' . $this->search . '%');
-            })
-            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                $query->where(function ($query) {
+                    $query->whereHas('office', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })->orWhere('requested_by_name', 'like', '%' . $this->search . '%')
+                      ->orWhere('position', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('conductedBy', function ($q) {
+                          $q->where('name', 'like', '%' . $this->search . '%');
+                      });
+                });
+            });
+
+        if ($this->sortField === 'office') {
+            $query->join('offices', 'pm_records.office_id', '=', 'offices.id')
+                ->select('pm_records.*')
+                ->orderBy('offices.name', $this->sortAsc ? 'asc' : 'desc');
+        } else {
+            $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc');
+        }
+
+        return $query->orderBy('created_at', $this->sortAsc ? 'asc' : 'desc')
+            ->orderBy('id', $this->sortAsc ? 'asc' : 'desc')
             ->paginate($this->perPage);
+    }
+
+    public function specsForRecord(PmRecord $record)
+    {
+        return $record->recordItems
+            ->filter(function ($recordItem) {
+                $task = strtolower($recordItem->checklistItem->task_name ?? '');
+
+                return filled($recordItem->remarks)
+                    && (str_contains($task, 'ram') || str_contains($task, 'storage'));
+            })
+            ->map(function ($recordItem) {
+                $task = strtolower($recordItem->checklistItem->task_name ?? '');
+                $specs = trim((string) (preg_split('/\s+[–—-]\s+/u', trim($recordItem->remarks), 2)[0] ?? ''));
+
+                if (preg_match('/^(change|repair|replace|upgrade|increase|clean|service|install|update|reinstall)\b/iu', $specs)) {
+                    return null;
+                }
+
+                $label = str_contains($task, 'ram') ? 'RAM' : 'Storage';
+
+                return $label . ': ' . $specs;
+            })
+            ->filter()
+            ->unique()
+            ->values();
     }
 
     /**
@@ -139,6 +195,16 @@ class PmRecordsList extends Component
     {
         return view('livewire.pm-records-list', [
             'records' => $this->records,
+            'sortOptions' => [
+                ['label' => 'Date/time: newest first', 'value' => 'date_desc'],
+                ['label' => 'Date/time: oldest first', 'value' => 'date_asc'],
+                ['label' => 'Name: A to Z', 'value' => 'name_asc'],
+                ['label' => 'Name: Z to A', 'value' => 'name_desc'],
+                ['label' => 'Office: A to Z', 'value' => 'office_asc'],
+                ['label' => 'Office: Z to A', 'value' => 'office_desc'],
+                ['label' => 'Position: A to Z', 'value' => 'position_asc'],
+                ['label' => 'Position: Z to A', 'value' => 'position_desc'],
+            ],
         ]);
     }
 }

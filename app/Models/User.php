@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -47,5 +48,34 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public static function moduleOptions(): array
+    {
+        return [
+            'dashboard' => 'Dashboard',
+            'office-selection' => 'Conduct Preventive Maintenance',
+            'preventive-maintenance-form' => 'PM Form',
+            'pm-records-list' => 'PM Records',
+            'office-manager' => 'Manage Offices',
+            'pm-schedule-manager' => 'PM Schedule Manager',
+            'account-manager' => 'Account Manager',
+            'position-manager' => 'Position Manager',
+        ];
+    }
+
+    public function assignedPosition(): BelongsTo
+    {
+        return $this->belongsTo(Position::class, 'position', 'name');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasModuleAccess('account-manager');
+    }
+
+    public function hasModuleAccess(string $module): bool
+    {
+        return $this->assignedPosition?->hasModuleAccess($module) ?? false;
     }
 }

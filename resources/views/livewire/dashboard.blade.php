@@ -1,40 +1,4 @@
 <div class="max-w-7xl mx-auto p-2">
-       @component('components.navigation-tabs', [
-            'tabs' => [
-                [
-                    'label' => 'Dashboard',
-                    'route' => 'dashboard',
-                    'method' => 'navigateToDashboard',
-                    'id' => 'dashboard'
-                ],
-                [
-                    'label' => 'Conduct Preventive Maintenance',
-                    'route' => 'office-selection',
-                    'method' => 'navigateToOfficeSelection',
-                    'id' => 'office-selection'
-                ],
-                [
-                    'label' => 'Records',
-                    'route' => 'pm-records-list',
-                    'method' => 'navigateToRecords',
-                    'id' => 'pm-records-list'
-                ],
-                [
-                    'label' => 'Manage Offices',
-                    'route' => 'office-manager',
-                    'method' => 'navigateToOfficeManager',
-                    'id' => 'office-manager'
-                ],
-                [
-                    'label' => 'PM Schedule Manager',
-                    'route' => 'pm-schedule-manager',
-                    'method' => 'navigateToScheduleManager',
-                    'id' => 'schedule-manager'
-                ]
-            ],
-            'currentTab' => 'dashboard'
-        ])
-@endcomponent
     <div class="py-8">
         <!-- Analytics Section -->
         <div class="mb-8">
@@ -43,7 +7,13 @@
                     <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Preventive maintenance</p>
                     <h2 class="text-2xl font-bold text-gray-900">Dashboard analytics</h2>
                 </div>
-                <p class="text-sm text-gray-500">Computer results follow the office and date filters. Office coverage follows the date period.</p>
+                <div class="flex flex-col gap-2 sm:items-end">
+                    <p class="text-sm text-gray-500">Computer results follow the office and date filters. Office coverage follows the date period.</p>
+                    <a href="{{ route('pm-summary.pdf', ['start_date' => $customStartDate, 'end_date' => $customEndDate, 'office_id' => $selectedOfficeId]) }}"
+                       class="inline-flex items-center rounded-base bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-strong focus:outline-none focus:ring-4 focus:ring-brand-medium">
+                        Generate PDF Summary
+                    </a>
+                </div>
             </div>
 
             <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -85,7 +55,7 @@
         </div>
 
         <!-- Primary computer metrics -->
-        <div class="mb-8 grid gap-4 md:grid-cols-2">
+        <div class="mb-8 grid gap-4 md:grid-cols-3">
             <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
                 <p class="text-sm font-medium text-emerald-800">Computers checked</p>
                 <p class="mt-2 text-4xl font-bold text-emerald-950">{{ $totalComputersChecked }}</p>
@@ -97,7 +67,57 @@
                 <p class="mt-2 text-4xl font-bold text-rose-950">{{ $totalDamagedComputers }}</p>
                 <p class="mt-2 text-sm text-rose-700">Computers with at least one defective item</p>
             </div>
+
+            <div class="relative {{ $showIssueBreakdown ? 'z-20' : '' }} rounded-lg border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                <p class="text-sm font-medium text-amber-900">Total issues found</p>
+                <p class="mt-2 text-4xl font-bold text-amber-950">{{ $totalIssuesFound }}</p>
+                <p class="mt-2 text-sm text-amber-800">Defective findings across computers</p>
+                <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                    <button type="button"
+                            wire:click="toggleIssueBreakdown"
+                            aria-controls="issue-breakdown"
+                            aria-expanded="{{ $showIssueBreakdown ? 'true' : 'false' }}"
+                            class="text-sm font-semibold text-amber-950 underline underline-offset-2 hover:text-amber-700">
+                        {{ $showIssueBreakdown ? 'Hide breakdown' : 'View breakdown' }}
+                    </button>
+                    <button type="button"
+                            wire:click="openIssueBreakdownModal"
+                            class="text-sm font-semibold text-amber-950 underline underline-offset-2 hover:text-amber-700">
+                        Expand
+                    </button>
+                </div>
+
+                @if($showIssueBreakdown)
+                    <div id="issue-breakdown" class="absolute inset-x-0 top-full z-30 mt-2 max-h-80 overflow-y-auto overscroll-contain rounded-lg border border-gray-200 bg-white p-4 shadow-xl">
+                        @include('livewire.issue-breakdown-content', ['issueBreakdown' => $issueBreakdown])
+                    </div>
+                @endif
+            </div>
         </div>
+
+        @if($showIssueBreakdownModal)
+            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-gray-950/60 p-4"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="issue-breakdown-title"
+                 wire:click="closeIssueBreakdownModal"
+                 @keydown.escape.window="$wire.call('closeIssueBreakdownModal')">
+                <div class="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
+                     wire:click.stop>
+                    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                        <h3 id="issue-breakdown-title" class="text-lg font-semibold text-gray-900">Issue breakdown</h3>
+                        <button type="button"
+                                wire:click="closeIssueBreakdownModal"
+                                class="text-sm font-semibold text-gray-700 underline underline-offset-2 hover:text-gray-950">
+                            Close
+                        </button>
+                    </div>
+                    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
+                        @include('livewire.issue-breakdown-content', ['issueBreakdown' => $issueBreakdown])
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Office coverage -->
         <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
