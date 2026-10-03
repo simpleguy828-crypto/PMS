@@ -177,22 +177,10 @@ class PreventiveMaintenanceForm extends Component
 
     public function updatedName($name)
     {
-        // Auto-fill position and user_id if exact case-insensitive match
-        // Only auto-fill position if it's currently empty (preserves manual entries)
-        $match = collect($this->users)->first(function ($user) use ($name) {
-            return strtolower($user['name']) === strtolower($name);
-        });
-
-        if ($match) {
-            // Only auto-fill position if it's empty - preserves manual position entries
-            if (empty($this->position)) {
-                $this->position = $match['position'];
-            }
-            $this->user_id = $match['id'];
-        } else {
-            // Clear user_id if no match found
-            $this->user_id = null;
-        }
+        // No auto-fill of position from name - these are independent fields
+        // Name = customer's name, Position = customer's position
+        // We don't derive conducted_by from the name field
+        $this->user_id = null;
     }
 
     public function updatedDateStarted($date)
@@ -297,7 +285,7 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $this->office_id,
             'requested_by_name' => $this->name,
             'position' => $this->position,
-            'conducted_by' => $this->user_id,
+            'conducted_by' => auth()->id(), // Technician currently using the system
             'date_started' => $this->date_started,
             'status' => 'pending',
         ]);
@@ -342,7 +330,7 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $data['office_id'],
             'requested_by_name' => $data['name'],
             'position' => $data['position'],
-            'conducted_by' => $this->user_id,
+            'conducted_by' => auth()->id(), // Technician currently using the system
             'date_started' => $data['date_started'],
             'status' => 'draft',
         ]);
@@ -375,7 +363,6 @@ class PreventiveMaintenanceForm extends Component
             'office_id' => $this->office_id,
             'requested_by_name' => $this->name,
             'position' => $this->position,
-            'conducted_by' => $this->user_id,
             'date_started' => $this->date_started,
         ];
         if ($status !== null) {
