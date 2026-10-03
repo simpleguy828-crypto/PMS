@@ -72,18 +72,12 @@
             foreach ($checklistItems as $item) {
                 $grouped[$item['section']][] = $item;
             }
-            $statusOptions = [
-                ['label' => 'Good', 'value' => 'good'],
-                ['label' => 'Defective', 'value' => 'defective'],
-                ['label' => 'N/A', 'value' => 'na'],
-                ['label' => 'Needs Attention', 'value' => 'needs_attention'],
-            ];
         @endphp
 
         @foreach($grouped as $section => $items)
             <div class="mb-5">
-                <div class="bg-gray-100 border border-gray-300 rounded-t-lg px-4 py-2 font-semibold text-gray-900 text-sm">
-                    {{ $section }}
+                <div class="md:hidden bg-gray-100 border border-gray-300 rounded-t-lg px-4 py-2 font-semibold text-gray-900 text-sm">
+                    {{ $section }}:
                 </div>
 
                 <!-- Mobile: stacked cards -->
@@ -102,25 +96,35 @@
                                 <x-flowbite-dropdown id="pm-status-mobile-{{ $itemId }}"
                                                      wire-model="itemStatus.{{ $itemId }}"
                                                      :selected-value="$itemStatus[$itemId] ?? ''"
-                                                     :options="$statusOptions"
+                                                     :options="$this->statusOptions($item)"
                                                      placeholder="Select Status" />
                                 @error("itemStatus.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Date Completed</label>
                                     <x-flowbite-datepicker id="pm-date-mobile-{{ $itemId }}"
                                                            :value="$itemDateCompleted[$itemId] ?? ''"
                                                            wire:model.live="itemDateCompleted.{{ $itemId }}" />
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Remarks (optional)</label>
-                                    <input type="text"
-                                           wire:model.live="itemRemarks.{{ $itemId }}"
-                                           class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-base sm:text-sm"
-                                           placeholder="Optional">
+                                @unless($this->isKeyboardCleaningTask($item))
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-medium text-gray-500">Remarks</label>
+                                    @if($this->itemAllowsFreeformRemarks($item))
+                                        <input type="text"
+                                               wire:model.live="itemRemarks.{{ $itemId }}"
+                                               class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-base sm:text-sm"
+                                               placeholder="{{ $this->itemRemarkPlaceholder($item) }}">
+                                    @endif
+                                    <x-flowbite-dropdown id="pm-recommendation-mobile-{{ $itemId }}"
+                                                         wire-model="itemRecommendations.{{ $itemId }}"
+                                                         :selected-value="$itemRecommendations[$itemId] ?? ''"
+                                                         :options="$this->recommendationOptions($item)"
+                                                         placeholder="Select Remarks" />
+                                    @error("itemRecommendations.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                                 </div>
+                                @endunless
                             </div>
                         </div>
                     @endforeach
@@ -128,14 +132,19 @@
 
                 <!-- Desktop: table -->
                 <div class="hidden md:block border border-t-0 border-gray-300 rounded-b-lg overflow-visible bg-white">
-                    @component('components.table')
+                    @component('components.table', ['overflowVisible' => true])
                         @slot('slotHeader')
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Task</th>
+                            <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500">Task</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Status</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-44">Date Completed</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-56">Remarks</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 w-64">Remarks</th>
                         @endslot
                         @slot('slotBody')
+                            <tr class="bg-white border-b border-gray-300">
+                                <th colspan="4" scope="rowgroup" class="px-2 py-2 text-left text-sm font-semibold text-gray-900">
+                                    {{ $section }}:
+                                </th>
+                            </tr>
                             @foreach($items as $item)
                                 @php $itemId = $item['id']; @endphp
                                 <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
@@ -149,7 +158,7 @@
                                         <x-flowbite-dropdown id="pm-status-desktop-{{ $itemId }}"
                                                              wire-model="itemStatus.{{ $itemId }}"
                                                              :selected-value="$itemStatus[$itemId] ?? ''"
-                                                             :options="$statusOptions"
+                                                             :options="$this->statusOptions($item)"
                                                              placeholder="Select Status" />
                                         @error("itemStatus.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                                     </td>
@@ -159,10 +168,22 @@
                                                         wire:model.live="itemDateCompleted.{{ $itemId }}" />
                                     </td>
                                     <td class="px-4 py-2 align-top">
-                                        <input type="text"
-                                               wire:model.live="itemRemarks.{{ $itemId }}"
-                                               class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-sm"
-                                               placeholder="Optional remarks">
+                                        @unless($this->isKeyboardCleaningTask($item))
+                                        <div class="space-y-2">
+                                        @if($this->itemAllowsFreeformRemarks($item))
+                                            <input type="text"
+                                                   wire:model.live="itemRemarks.{{ $itemId }}"
+                                                   class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-emerald-600 text-sm"
+                                                   placeholder="{{ $this->itemRemarkPlaceholder($item) }}">
+                                        @endif
+                                        <x-flowbite-dropdown id="pm-recommendation-desktop-{{ $itemId }}"
+                                                             wire-model="itemRecommendations.{{ $itemId }}"
+                                                             :selected-value="$itemRecommendations[$itemId] ?? ''"
+                                                             :options="$this->recommendationOptions($item)"
+                                                             placeholder="Select Remarks" />
+                                        @error("itemRecommendations.$itemId") <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                        </div>
+                                        @endunless
                                     </td>
                                 </tr>
                             @endforeach
@@ -245,11 +266,11 @@
             </div>
         @else
             <div class="flex flex-col sm:flex-row gap-3">
-                <button wire:click="requestConductAgainConfirmation"
+                <button wire:click="conductAgain"
                         class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-800 rounded-lg">
                     Conduct Again
                 </button>
-                <button wire:click="backToOfficeSelection"
+                <button wire:click="requestOfficeSelectionConfirmation"
                         class="flex-1 px-6 py-3.5 sm:py-3 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 rounded-lg">
                     Back to Office Selection
                 </button>
@@ -259,17 +280,22 @@
 
     <x-flowbite-modal
         id="pm-form-confirmation"
-        :show="in_array($confirmationAction, ['conduct-again', 'saved', 'draft-saved'], true)"
-        :title="$confirmationAction === 'conduct-again'
-            ? 'Conduct another maintenance?'
-            : ($confirmationAction === 'draft-saved' ? 'Draft saved' : 'Record saved')"
-        :message="$confirmationAction === 'conduct-again'
-            ? 'The current form will be cleared so you can create another record for this office.'
-            : ($confirmationAction === 'draft-saved'
-                ? 'Your draft is saved. Resume it from Office Selection or continue editing here.'
-                : 'Your preventive maintenance record has been saved successfully.')"
-        :confirm-text="$confirmationAction === 'conduct-again' ? 'Conduct Again' : 'Continue Editing'"
-        :cancel-text="$confirmationAction === 'conduct-again' ? 'Stay on Form' : 'Close'"
+        :show="$confirmationAction === 'saved'"
+        title="Record saved"
+        message="Your preventive maintenance record has been saved successfully."
+        confirm-text="Conduct Again"
+        cancel-text="Close"
+        confirm-action="confirmAction"
+        cancel-action="cancelConfirmation"
+        confirm-button-class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium" />
+
+    <x-flowbite-modal
+        id="pm-office-confirmation"
+        :show="$confirmationAction === 'office-selection'"
+        title="Return to office selection?"
+        message="This will leave the current form without saving changes."
+        confirm-text="Yes, return"
+        cancel-text="Close"
         confirm-action="confirmAction"
         cancel-action="cancelConfirmation"
         confirm-button-class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium" />

@@ -10,7 +10,7 @@
     <div class="w-full max-w-md px-6">
         <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
             <div class="mb-6 text-center">
-                <h1 class="text-2xl font-bold text-slate-900">Admin Portal</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Preventive Maintenance System - Admin</h1>
                 <p class="mt-2 text-sm text-slate-600">Manage user access and all PM modules.</p>
             </div>
 
@@ -36,10 +36,10 @@
 
                 <div class="flex items-center justify-between text-sm text-slate-600">
                     <label class="inline-flex items-center gap-2">
-                        <input type="checkbox" name="remember" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                        <input type="checkbox" name="remember" value="1" class="rounded border-slate-300 text-green-600 focus:ring-green-500" />
                         Remember me
                     </label>
-                    <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:underline">User login</a>
+                    <a href="{{ route('login') }}" class="font-medium text-cyan-600 hover:underline">User login</a>
                 </div>
 
                 <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">

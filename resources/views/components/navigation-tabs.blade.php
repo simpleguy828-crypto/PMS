@@ -3,7 +3,7 @@
     $routeName = request()->route()?->getName();
     $tabs = [
         ['label' => 'Dashboard', 'route' => 'dashboard', 'module' => 'dashboard', 'active' => ['dashboard']],
-        ['label' => 'Conduct Preventive Maintenance', 'route' => 'office-selection', 'module' => 'office-selection', 'active' => ['office-selection', 'preventive-maintenance-form', 'pm-form.edit']],
+        ['label' => 'Conduct PMS', 'route' => 'office-selection', 'module' => 'office-selection', 'active' => ['office-selection', 'preventive-maintenance-form', 'pm-form.edit']],
         ['label' => 'Records', 'route' => 'pm-records-list', 'module' => 'pm-records-list', 'active' => ['pm-records-list']],
         ['label' => 'Manage Offices', 'route' => 'office-manager', 'module' => 'office-manager', 'active' => ['office-manager']],
         ['label' => 'PM Schedule Manager', 'route' => 'pm-schedule-manager', 'module' => 'pm-schedule-manager', 'active' => ['pm-schedule-manager']],

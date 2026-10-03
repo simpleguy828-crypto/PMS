@@ -10,7 +10,7 @@
     <div class="w-full max-w-md px-6">
         <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
             <div class="mb-6 text-center">
-                <h1 class="text-2xl font-bold text-slate-900">User Portal</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Preventive Maintenance System</h1>
                 <p class="mt-2 text-sm text-slate-600">Sign in to continue with preventive maintenance tasks.</p>
             </div>
 
@@ -31,18 +31,18 @@
                 <div>
                     <label for="password" class="mb-1 block text-sm font-medium text-slate-700">Password</label>
                     <input id="password" name="password" type="password" required
-                        class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
 
                 <div class="flex items-center justify-between text-sm text-slate-600">
                     <label class="inline-flex items-center gap-2">
-                        <input type="checkbox" name="remember" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                        <input type="checkbox" name="remember" value="1" class="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500" />
                         Remember me
                     </label>
-                    <a href="{{ route('admin.login') }}" class="font-medium text-indigo-600 hover:underline">Admin login</a>
+                    <a href="{{ route('admin.login') }}" class="font-medium text-cyan-600 hover:underline">Admin login</a>
                 </div>
 
-                <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                <button type="submit" class="w-full rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600">
                     Sign In
                 </button>
             </form>

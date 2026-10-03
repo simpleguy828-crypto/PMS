@@ -62,6 +62,30 @@ class AuthAccessControlTest extends TestCase
             ->assertDontSee('Position Manager');
     }
 
+    public function test_login_and_root_redirect_to_first_accessible_module_when_dashboard_is_unassigned(): void
+    {
+        $position = $this->createPosition('PM Conductor', ['office-selection']);
+        $user = $this->createUser('PM Conductor', 'pm-conductor@example.com', $position);
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'secret123',
+        ])->assertRedirect('/office-selection');
+
+        $this->get('/')->assertRedirect('/office-selection');
+    }
+
+    public function test_admin_login_redirects_to_account_manager_when_it_is_the_only_accessible_module(): void
+    {
+        $position = $this->createPosition('Account Manager', ['account-manager']);
+        $user = $this->createUser('Account Manager', 'account-manager@example.com', $position);
+
+        $this->post('/admin/login', [
+            'email' => $user->email,
+            'password' => 'secret123',
+        ])->assertRedirect('/admin/accounts');
+    }
+
     public function test_admin_can_update_user_and_position_controls_access(): void
     {
         $admin = $this->createUser('Admin User', 'admin2@example.com', $this->createPosition('Admin', array_keys(User::moduleOptions())));

@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route($user->firstAccessibleRouteName());
     }
 
     public function adminLogin(Request $request)
@@ -71,7 +71,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route($user->firstAccessibleRouteName());
     }
 
     public function logout(Request $request)

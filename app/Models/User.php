@@ -78,4 +78,25 @@ class User extends Authenticatable
     {
         return $this->assignedPosition?->hasModuleAccess($module) ?? false;
     }
+
+    public function firstAccessibleRouteName(): string
+    {
+        $routes = [
+            'dashboard' => 'dashboard',
+            'office-selection' => 'office-selection',
+            'pm-records-list' => 'pm-records-list',
+            'office-manager' => 'office-manager',
+            'pm-schedule-manager' => 'pm-schedule-manager',
+            'account-manager' => 'admin.accounts',
+            'position-manager' => 'admin.positions',
+        ];
+
+        foreach ($routes as $module => $route) {
+            if ($this->hasModuleAccess($module)) {
+                return $route;
+            }
+        }
+
+        return 'profile';
+    }
 }
