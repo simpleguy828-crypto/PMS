@@ -178,12 +178,16 @@ class PreventiveMaintenanceForm extends Component
     public function updatedName($name)
     {
         // Auto-fill position and user_id if exact case-insensitive match
+        // Only auto-fill position if it's currently empty (preserves manual entries)
         $match = collect($this->users)->first(function ($user) use ($name) {
             return strtolower($user['name']) === strtolower($name);
         });
 
         if ($match) {
-            $this->position = $match['position'];
+            // Only auto-fill position if it's empty - preserves manual position entries
+            if (empty($this->position)) {
+                $this->position = $match['position'];
+            }
             $this->user_id = $match['id'];
         } else {
             // Clear user_id if no match found
